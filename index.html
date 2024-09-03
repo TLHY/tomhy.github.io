@@ -22,14 +22,40 @@
             width: 80%;
             margin: 20px auto;
         }
+        .tab {
+            overflow: hidden;
+            border-bottom: 1px solid #ccc;
+            background-color: #f4f4f4;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #ccc;
+        }
+        .tabcontent {
+            display: none;
+            padding: 20px 0;
+            border-top: none;
+        }
+        .tabcontent.show {
+            display: block;
+        }
         .section-title {
             font-size: 24px;
             margin-bottom: 10px;
             border-bottom: 2px solid #333;
             padding-bottom: 5px;
-        }
-        .news, .works {
-            margin-bottom: 40px;
         }
         .news-item, .work-item {
             background-color: #fff;
@@ -65,50 +91,83 @@
 </header>
 
 <div class="container">
+    <!-- Tab links -->
+    <div class="tab">
+        <button class="tablinks" onclick="openTab(event, 'News')" id="defaultOpen">Recent News</button>
+        <button class="tablinks" onclick="openTab(event, 'Works')">Recent Works</button>
+    </div>
 
-    <!-- Recent News Section -->
-    <section class="news">
-        <h2 class="section-title">Recent News</h2>
+    <!-- News Tab Content -->
+    <div id="News" class="tabcontent">
+        <section class="news">
+            <h2 class="section-title">Recent News</h2>
 
-        <!-- Example News Item 1 -->
-        <div class="news-item">
-            <img src="images/dog.jpg" alt="News Image 1">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
-        </div>
+            <!-- Example News Item 1 -->
+            <div class="news-item">
+                <img src="images/news-image1.jpg" alt="News Image 1">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
+            </div>
 
-        <!-- Example News Item 2 -->
-        <div class="news-item">
-            <img src="images/dog.jpg" alt="News Image 2">
-            <p>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-        </div>
+            <!-- Example News Item 2 -->
+            <div class="news-item">
+                <img src="images/news-image2.jpg" alt="News Image 2">
+                <p>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            </div>
 
-        <!-- Add more news items as needed -->
-    </section>
+            <!-- Add more news items as needed -->
+        </section>
+    </div>
 
-    <!-- Recent Works Section -->
-    <section class="works">
-        <h2 class="section-title">Recent Works</h2>
+    <!-- Works Tab Content -->
+    <div id="Works" class="tabcontent">
+        <section class="works">
+            <h2 class="section-title">Recent Works</h2>
 
-        <!-- Example Work Item 1 -->
-        <div class="work-item">
-            <img src="images/dog.jpg" alt="Work Image 1">
-            <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-        </div>
+            <!-- Example Work Item 1 -->
+            <div class="work-item">
+                <img src="images/work-image1.jpg" alt="Work Image 1">
+                <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+            </div>
 
-        <!-- Example Work Item 2 -->
-        <div class="work-item">
-            <img src="images/dog.jpg" alt="Work Image 2">
-            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
-        </div>
+            <!-- Example Work Item 2 -->
+            <div class="work-item">
+                <img src="images/work-image2.jpg" alt="Work Image 2">
+                <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+            </div>
 
-        <!-- Add more work items as needed -->
-    </section>
-
+            <!-- Add more work items as needed -->
+        </section>
+    </div>
 </div>
 
 <footer>
     <p>&copy; 2024 My Homepage. All rights reserved.</p>
 </footer>
+
+<script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        
+        // Hide all tab content
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        
+        // Remove "active" class from all buttons
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        
+        // Show the current tab's content and add an "active" class to the button that opened the tab
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+    
+    // Open the default tab
+    document.getElementById("defaultOpen").click();
+</script>
 
 </body>
 </html>
