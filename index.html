@@ -21,6 +21,7 @@
         .container {
             width: 80%;
             margin: 20px auto;
+            height: 80vh; /* Adjusts height of the container */
         }
         .tab {
             overflow: hidden;
@@ -47,6 +48,8 @@
             display: none;
             padding: 20px 0;
             border-top: none;
+            height: calc(100% - 40px); /* Adjusts the height to make the content scrollable */
+            overflow-y: auto; /* Makes the content scrollable */
         }
         .tabcontent.show {
             display: block;
