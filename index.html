@@ -6,20 +6,23 @@
     <title>My Homepage</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Times New Roman', Times, serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
             color: #333;
         }
         header {
-            background-image: url('images/Logo.png'); /* Replace with your image path */
-            background-size: cover;
-            background-position: center;
+            background-image: url('images/Logo.png');
+            background-color: #434346; /* Replace with your image path */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: left center;
             color: #fff;
             height: 300px; /* Set the height for the header */
             display: flex;
             justify-content: center;
+            padding-left: 20px;
             align-items: center;
             text-align: center;
         }
@@ -37,22 +40,25 @@
             overflow: hidden;
             border-bottom: 1px solid #ccc;
             background-color: #f4f4f4;
+            display: flex;
         }
         .tab button {
             background-color: inherit;
-            float: left;
+            flex: 1;
             border: none;
             outline: none;
             cursor: pointer;
             padding: 14px 16px;
-            transition: 0.3s;
+            transition: background-color 0.3s ease, transform 0.2s ease;
             font-size: 17px;
         }
         .tab button:hover {
             background-color: #ddd;
+            transform: translateY(-2px);
         }
         .tab button.active {
             background-color: #ccc;
+            transform: translateY(0);
         }
         .tabcontent {
             display: none;
@@ -60,9 +66,12 @@
             border-top: none;
             height: calc(100% - 40px); /* Adjusts the height to make the content scrollable */
             overflow-y: auto; /* Makes the content scrollable */
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
         .tabcontent.show {
             display: block;
+            opacity: 1;
         }
         .section-title {
             font-size: 24px;
@@ -105,8 +114,18 @@
 <div class="container">
     <!-- Tab links -->
     <div class="tab">
-        <button class="tablinks" onclick="openTab(event, 'News')" id="defaultOpen">Recent News</button>
-        <button class="tablinks" onclick="openTab(event, 'Works')">Recent Works</button>
+        <button class="tablinks" onclick="openTab(event, 'Profile')" id="defaultOpen">Profile</button>
+        <button class="tablinks" onclick="openTab(event, 'News')">News</button>
+        <button class="tablinks" onclick="openTab(event, 'Works')">Works</button>
+    </div>
+
+    <!-- Profile Tab Content -->
+    <div id="Profile" class="tabcontent">
+        <section class="profile">
+            <h2 class="section-title">My Profile</h2>
+            <p>Welcome to my profile! Here you can find information about me, my background, and my interests.</p>
+            <p>Feel free to include any other details you would like to share, such as your education, work experience, hobbies, etc.</p>
+        </section>
     </div>
 
     <!-- News Tab Content -->
@@ -164,6 +183,7 @@
         tabcontent = document.getElementsByClassName("tabcontent");
         for (i = 0; i < tabcontent.length; i++) {
             tabcontent[i].style.display = "none";
+            tabcontent[i].classList.remove("show");
         }
         
         // Remove "active" class from all buttons
@@ -174,6 +194,9 @@
         
         // Show the current tab's content and add an "active" class to the button that opened the tab
         document.getElementById(tabName).style.display = "block";
+        setTimeout(function() {
+            document.getElementById(tabName).classList.add("show");
+        }, 10);
         evt.currentTarget.className += " active";
     }
     
