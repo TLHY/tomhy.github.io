@@ -6,7 +6,7 @@
     <title>My Homepage</title>
     <style>
         body {
-            font-family: 'Times New Roman', Times, serif;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
@@ -105,104 +105,14 @@
             bottom: 0;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 
 <header>
+    Construction...
 </header>
 
-<div class="container">
-    <!-- Tab links -->
-    <div class="tab">
-        <button class="tablinks" onclick="openTab(event, 'Profile')" id="defaultOpen">Profile</button>
-        <button class="tablinks" onclick="openTab(event, 'News')">News</button>
-        <button class="tablinks" onclick="openTab(event, 'Works')">Works</button>
-    </div>
-
-    <!-- Profile Tab Content -->
-    <div id="Profile" class="tabcontent">
-        <section class="profile">
-            <h2 class="section-title">My Profile</h2>
-            <p>Welcome to my profile! Here you can find information about me, my background, and my interests.</p>
-            <p>Feel free to include any other details you would like to share, such as your education, work experience, hobbies, etc.</p>
-        </section>
-    </div>
-
-    <!-- News Tab Content -->
-    <div id="News" class="tabcontent">
-        <section class="news">
-            <h2 class="section-title">Recent News</h2>
-
-            <!-- Example News Item 1 -->
-            <div class="news-item">
-                <img src="images/news-image1.jpg" alt="News Image 1">
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
-            </div>
-
-            <!-- Example News Item 2 -->
-            <div class="news-item">
-                <img src="images/news-image2.jpg" alt="News Image 2">
-                <p>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-            </div>
-
-            <!-- Add more news items as needed -->
-        </section>
-    </div>
-
-    <!-- Works Tab Content -->
-    <div id="Works" class="tabcontent">
-        <section class="works">
-            <h2 class="section-title">Recent Works</h2>
-
-            <!-- Example Work Item 1 -->
-            <div class="work-item">
-                <img src="images/work-image1.jpg" alt="Work Image 1">
-                <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-            </div>
-
-            <!-- Example Work Item 2 -->
-            <div class="work-item">
-                <img src="images/work-image2.jpg" alt="Work Image 2">
-                <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
-            </div>
-
-            <!-- Add more work items as needed -->
-        </section>
-    </div>
-</div>
-
-<footer>
-    <p>&copy; 2024 My Homepage. All rights reserved.</p>
-</footer>
-
-<script>
-    function openTab(evt, tabName) {
-        var i, tabcontent, tablinks;
-        
-        // Hide all tab content
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
-            tabcontent[i].classList.remove("show");
-        }
-        
-        // Remove "active" class from all buttons
-        tablinks = document.getElementsByClassName("tablinks");
-        for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
-        
-        // Show the current tab's content and add an "active" class to the button that opened the tab
-        document.getElementById(tabName).style.display = "block";
-        setTimeout(function() {
-            document.getElementById(tabName).classList.add("show");
-        }, 10);
-        evt.currentTarget.className += " active";
-    }
-    
-    // Open the default tab
-    document.getElementById("defaultOpen").click();
-</script>
 
 </body>
 </html>

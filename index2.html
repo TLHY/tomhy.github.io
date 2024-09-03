@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Homepage</title>
+    <style>
+        body {
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-image: url('images/Logo.png');
+            background-color: #434346; /* Replace with your image path */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: left center;
+            color: #fff;
+            height: 300px; /* Set the height for the header */
+            display: flex;
+            justify-content: center;
+            padding-left: 20px;
+            align-items: center;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 36px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            height: 80vh; /* Adjusts height of the container */
+        }
+        .tab {
+            overflow: hidden;
+            border-bottom: 1px solid #ccc;
+            background-color: #f4f4f4;
+            display: flex;
+        }
+        .tab button {
+            background-color: inherit;
+            flex: 1;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-size: 17px;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+            transform: translateY(-2px);
+        }
+        .tab button.active {
+            background-color: #ccc;
+            transform: translateY(0);
+        }
+        .tabcontent {
+            display: none;
+            padding: 20px 0;
+            border-top: none;
+            height: calc(100% - 40px); /* Adjusts the height to make the content scrollable */
+            overflow-y: auto; /* Makes the content scrollable */
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .tabcontent.show {
+            display: block;
+            opacity: 1;
+        }
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+        }
+        .news-item, .work-item {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+        .news-item img, .work-item img {
+            max-width: 150px;
+            margin-right: 20px;
+            border-radius: 5px;
+        }
+        .news-item p, .work-item p {
+            margin: 0;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<header>
+</header>
+
+<div class="container">
+    <!-- Tab links -->
+    <div class="tab">
+        <button class="tablinks" onclick="openTab(event, 'Profile')" id="defaultOpen">Profile</button>
+        <button class="tablinks" onclick="openTab(event, 'News')">News</button>
+        <button class="tablinks" onclick="openTab(event, 'Publications')">Publications</button>
+    </div>
+
+    <!-- Profile Tab Content -->
+    <div id="Profile" class="tabcontent">
+        <section class="profile">
+            <h2 class="section-title">My Profile</h2>
+            <p>Welcome to my profile! Here you can find information about me, my background, and my interests.</p>
+            <p>Feel free to include any other details you would like to share, such as your education, work experience, hobbies, etc.</p>
+        </section>
+    </div>
+
+    <!-- News Tab Content -->
+    <div id="News" class="tabcontent">
+        <section class="news">
+            <h2 class="section-title"></h2>
+
+            <!-- Example News Item 1 -->
+            <div class="news-item">
+                <img src="images/news-image1.jpg" alt="News Image 1">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
+            </div>
+
+            <!-- Example News Item 2 -->
+            <div class="news-item">
+                <img src="images/news-image2.jpg" alt="News Image 2">
+                <p> </p>
+            </div>
+
+            <!-- Add more news items as needed -->
+        </section>
+  
+
+    </div>
+
+    <!-- Works Tab Content -->
+    <div id="Publications" class="tabcontent">
+        <section class="works">
+            <h2 class="section-title">2024</h2>
+            <div class="work-item">
+                <p> 2024.10 <a href="https://ieeeismar.org/">Coming Soon</a></p>
+            </div>
+            <div class="work-item">
+                <p> 2024.10 <a href="https://www.xr-spro.org/">Coming Soon</a></p>
+            </div>
+            <div class="work-item">
+                <p> 2024.5 <i class="fas fa-trophy"></i> Adaptive and Immersive XR Interactions with Wearable Interfaces (Demo of KAIST HCI Tech Lab) ACM CHI Interactivity Popular Choice Award (<a href="https://dl.acm.org/doi/10.1145/3613905.3648652">DOI</a>) </p>
+            </div>
+            <h2 class="section-title">2023</h2>
+            <div class="work-item">
+                <p> 2023.11 <i class="fas fa-trophy"></i> Thermal Referral 현상을 이용한 햅틱 장갑을 위한 동적 열감 렌더링 (<a href="https://haptics.or.kr/conference/award.php">1st Korea Haptics Conference</a> Best Paper Award)</p>
+            </div>
+
+            <!-- Add more work items as needed -->
+            
+        </section>
+        
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2024 My Homepage. All rights reserved.</p>
+</footer>
+
+<script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        
+        // Hide all tab content
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+            tabcontent[i].classList.remove("show");
+        }
+        
+        // Remove "active" class from all buttons
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        
+        // Show the current tab's content and add an "active" class to the button that opened the tab
+        document.getElementById(tabName).style.display = "block";
+        setTimeout(function() {
+            document.getElementById(tabName).classList.add("show");
+        }, 10);
+        evt.currentTarget.className += " active";
+    }
+    
+    // Open the default tab
+    document.getElementById("defaultOpen").click();
+</script>
+
+</body>
+</html>
