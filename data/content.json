@@ -25,11 +25,11 @@
     "badge": "Main Save",
     "cards": [
       {
-        "title": "[About Me]",
-        "text": "[Write a short profile summary here.]"
+        "title": "Hyung Il Yi(aka Tom Lee)",
+        "text": "Hello World! Welcome to my personal website. I am a PhD. student in KAIST. My main interest is haptic interaction between the real world and the virtual world."
       },
       {
-        "title": "[Quick Facts]",
+        "title": "Skills & Interests",
         "list": [
           "[Role: ...]",
           "[Focus: ...]",
