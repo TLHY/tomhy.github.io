@@ -39,7 +39,7 @@ body {
 }
 
 .console-wrap {
-    width: min(1100px, 100%);
+    width: min(1320px, 100%);
     background: linear-gradient(180deg, #cfc9b5 0%, #afaa97 100%);
     border: 4px solid #48463f;
     box-shadow:
@@ -177,7 +177,7 @@ body {
         inset 0 0 0 3px #8eaa6b,
         0 8px 0 #2b3c22;
     border-radius: 4px;
-    min-height: 370px;
+    min-height: 520px;
     padding: 18px;
     display: none;
     opacity: 0;
@@ -315,6 +315,10 @@ body {
 }
 
 @media (max-width: 980px) {
+    .console-wrap {
+        width: min(1180px, 100%);
+    }
+
     .tab-bar {
         grid-template-columns: repeat(5, minmax(150px, 1fr));
     }
@@ -348,7 +352,7 @@ body {
     }
 
     .panel {
-        min-height: 300px;
+        min-height: 380px;
         padding: 12px;
     }
 
