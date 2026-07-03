@@ -5,7 +5,7 @@
     "playground": {
       "title": "[Slime! Beta]",
       "hint": "[Move your cursor to play]",
-      "slimeCount": 7,
+      "slimeCount": 8,
       "minSize": 30,
       "maxSize": 44,
       "speed": 44,
