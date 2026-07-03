@@ -3,116 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Homepage</title>
-    <style>
-        body {
-            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        header {
-            background-image: url('images/Logo.png');
-            background-color: #434346; /* Replace with your image path */
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: left center;
-            color: #fff;
-            height: 300px; /* Set the height for the header */
-            display: flex;
-            justify-content: center;
-            padding-left: 20px;
-            align-items: center;
-            text-align: center;
-        }
-        header h1 {
-            margin: 0;
-            font-size: 36px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-        }
-        .container {
-            width: 80%;
-            margin: 20px auto;
-            height: 80vh; /* Adjusts height of the container */
-        }
-        .tab {
-            overflow: hidden;
-            border-bottom: 1px solid #ccc;
-            background-color: #f4f4f4;
-            display: flex;
-        }
-        .tab button {
-            background-color: inherit;
-            flex: 1;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 14px 16px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            font-size: 17px;
-        }
-        .tab button:hover {
-            background-color: #ddd;
-            transform: translateY(-2px);
-        }
-        .tab button.active {
-            background-color: #ccc;
-            transform: translateY(0);
-        }
-        .tabcontent {
-            display: none;
-            padding: 20px 0;
-            border-top: none;
-            height: calc(100% - 40px); /* Adjusts the height to make the content scrollable */
-            overflow-y: auto; /* Makes the content scrollable */
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-        .tabcontent.show {
-            display: block;
-            opacity: 1;
-        }
-        .section-title {
-            font-size: 24px;
-            margin-bottom: 10px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 5px;
-        }
-        .news-item, .work-item {
-            background-color: #fff;
-            padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-        }
-        .news-item img, .work-item img {
-            max-width: 150px;
-            margin-right: 20px;
-            border-radius: 5px;
-        }
-        .news-item p, .work-item p {
-            margin: 0;
-        }
-        footer {
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            padding: 10px 0;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-        }
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Pixel-Retro Profile Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
+    <main class="console-wrap">
+        <section class="hero-screen">
+            <div class="boot-row">
+                <span><span class="led"></span><span id="player-label">player 1</span></span>
+                <span id="version-label">pixel hub v1.0</span>
+            </div>
+            <h1 class="pixel-title" id="site-title">Tom's Game Pak Portfolio</h1>
+            <p class="hero-note" id="site-subtitle">Choose a game pak tab to load your world.</p>
+        </section>
 
-<header>
-    Construction...
-</header>
+        <nav class="tab-bar" aria-label="Profile sections">
+            <button class="pak-tab active" type="button" data-panel="profile">Profile</button>
+            <button class="pak-tab" type="button" data-panel="projects">Projects</button>
+            <button class="pak-tab" type="button" data-panel="publications">Publications</button>
+            <button class="pak-tab" type="button" data-panel="news">News</button>
+            <button class="pak-tab" type="button" data-panel="life">Life Log</button>
+        </nav>
 
+        <section class="panel active" id="profile" role="region" aria-label="Profile">
+            <div class="panel-head">
+                <span id="profile-header">Profile Data</span>
+                <span class="badge" id="profile-badge">Main Save</span>
+            </div>
+            <div class="grid" id="profile-grid">
+                <p class="loading">Loading profile data...</p>
+            </div>
+        </section>
 
+        <section class="panel" id="projects" role="region" aria-label="Projects">
+            <div class="panel-head">
+                <span id="projects-header">Project Inventory</span>
+                <span class="badge" id="projects-badge">3 Slots</span>
+            </div>
+            <div class="grid" id="projects-grid">
+                <p class="loading">Loading project data...</p>
+            </div>
+        </section>
+
+        <section class="panel" id="publications" role="region" aria-label="Publications">
+            <div class="panel-head">
+                <span id="publications-header">Publication Log</span>
+                <span class="badge" id="publications-badge">Checkpoint</span>
+            </div>
+            <div class="timeline" id="publications-timeline">
+                <p class="loading">Loading publication data...</p>
+            </div>
+        </section>
+
+        <section class="panel" id="news" role="region" aria-label="News">
+            <div class="panel-head">
+                <span id="news-header">News Feed</span>
+                <span class="badge" id="news-badge">Live</span>
+            </div>
+            <div class="timeline" id="news-timeline">
+                <p class="loading">Loading news data...</p>
+            </div>
+        </section>
+
+        <section class="panel" id="life" role="region" aria-label="Personal life">
+            <div class="panel-head">
+                <span id="life-header">Life Log</span>
+                <span class="badge" id="life-badge">Bonus Stage</span>
+            </div>
+            <div class="grid" id="life-grid">
+                <p class="loading">Loading life log data...</p>
+            </div>
+        </section>
+
+        <div class="footer-line">
+            <span id="footer-hint">Press L/R (arrow keys) to switch game paks</span>
+            <span id="footer-copyright">Copyright 2026 Tom's Pixel Hub</span>
+        </div>
+    </main>
+    <script src="assets/js/app.js"></script>
 </body>
 </html>

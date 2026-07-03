@@ -1,0 +1,109 @@
+{
+  "meta": {
+    "heroTitle": "[YOUR NAME] Game Pak Portfolio",
+    "heroSubtitle": "[Add a short one-line intro here]",
+    "playerLabel": "player 1",
+    "versionLabel": "pixel hub v1.0",
+    "footerHint": "Press L/R (arrow keys) to switch game paks",
+    "footerCopyright": "Copyright 2026 [YOUR NAME]"
+  },
+  "profile": {
+    "header": "Profile Data",
+    "badge": "Main Save",
+    "cards": [
+      {
+        "title": "[About Me]",
+        "text": "[Write a short profile summary here.]"
+      },
+      {
+        "title": "[Quick Facts]",
+        "list": [
+          "[Role: ...]",
+          "[Focus: ...]",
+          "[Current Quest: ...]"
+        ]
+      }
+    ]
+  },
+  "projects": {
+    "header": "Project Inventory",
+    "badge": "3 Slots",
+    "cards": [
+      {
+        "title": "[Project 1 Title]",
+        "text": "[One-sentence project description.]"
+      },
+      {
+        "title": "[Project 2 Title]",
+        "text": "[One-sentence project description.]"
+      },
+      {
+        "title": "[Project 3 Title]",
+        "text": "[One-sentence project description.]"
+      },
+      {
+        "title": "[Project 4 Title]",
+        "text": "[One-sentence project description.]"
+      }
+    ]
+  },
+  "publications": {
+    "header": "Publication Log",
+    "badge": "Checkpoint",
+    "entries": [
+      {
+        "date": "[YYYY.MM]",
+        "title": "[Publication Title 1]",
+        "text": "[Venue, award, or short note.]"
+      },
+      {
+        "date": "[YYYY.MM]",
+        "title": "[Publication Title 2]",
+        "text": "[Venue, award, or short note.]"
+      },
+      {
+        "date": "[YYYY.MM]",
+        "title": "[Publication Title 3]",
+        "text": "[Venue, award, or short note.]"
+      }
+    ]
+  },
+  "news": {
+    "header": "News Feed",
+    "badge": "Live",
+    "entries": [
+      {
+        "date": "[Month YYYY]",
+        "title": "[News Title 1]",
+        "text": "[One-sentence news update.]"
+      },
+      {
+        "date": "[Month YYYY]",
+        "title": "[News Title 2]",
+        "text": "[One-sentence news update.]"
+      }
+    ]
+  },
+  "life": {
+    "header": "Life Log",
+    "badge": "Bonus Stage",
+    "cards": [
+      {
+        "title": "[Life Topic 1]",
+        "text": "[Personal note here.]"
+      },
+      {
+        "title": "[Life Topic 2]",
+        "text": "[Personal note here.]"
+      },
+      {
+        "title": "[Life Topic 3]",
+        "text": "[Personal note here.]"
+      },
+      {
+        "title": "[Life Topic 4]",
+        "text": "[Personal note here.]"
+      }
+    ]
+  }
+}
