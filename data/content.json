@@ -63,19 +63,25 @@
     "honorsAwardsTitle": "Honors & Awards",
     "honorsAwards": [
       {
-        "period": "[0000]",
-        "title": "[Loading...]",
-        "text": "[No Save Data!]",
-        "link": "[https://your-link-here]"
+        "period": "[2023.10]",
+        "title": "[Korea Haptics Society]",
+        "text": "[Best Paper Award]",
+        "link": "[https://haptics.or.kr/conference/award.php]"
       }
     ],
     "activitiesTitle": "Activities",
     "activities": [
       {
-        "period": "[0000]",
-        "title": "[Loading...]",
-        "text": "[No Save Data!]",
-        "link": "[https://your-link-here]"
+        "period": "[2024]",
+        "title": "[Student Volunteer at IEEE ISMAR 2024]"
+      },
+      {
+        "period": "[2024]",
+        "title": "[Student Volunteer at ACM CHI 2024]"
+      },
+      {
+        "period": "[2023]",
+        "title": "[Student Volunteer at Korea Haptics Society 2023]"
       }
     ]
   },
@@ -98,6 +104,13 @@
         "text2": "[Conference: IEEE ISMAR 2024]",
         "link": "[https://thermicvib.hcitech.org/]",
         "image": "images/ThermicVibTeaser.png"
+      },{
+        "date": "[2024.10]",
+        "title": "[Adaptive and Immersive XR Interactions with Wearable Interfaces (Demo of KAIST HCI Tech Lab)]",
+        "text": "[Authors: Sang Ho Yoon, Youjin Sung, Kun Woo Song, Kyungeun Jung, Kyungjin Seo, Jina Kim, **Hyung Il Yi**, Nicha Vanichvoranun, Hanseok Jeong, and Hojeong Lee]",
+        "text2": "[Conference: IEEE ISMAR 2024]",
+        "link": "[https://dl.acm.org/doi/10.1145/3613905.3648652]",
+        "image": "images/CHIInterTeaser.png"
       }
     ]
   },
