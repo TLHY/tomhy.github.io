@@ -11,81 +11,85 @@
 </head>
 <body>
     <main class="console-wrap">
-        <section class="hero-screen">
-            <div class="boot-row">
-                <span><span class="led"></span><span id="player-label">player 1</span></span>
-                <span id="version-label">pixel hub v1.0</span>
-            </div>
-            <div class="meta-playground" id="meta-playground" aria-label="Interactive slime playground">
-                <div class="meta-hud">
-                    <span id="meta-zone-title">Slime Meadow</span>
-                    <span id="meta-zone-hint">Move your cursor to play</span>
-                </div>
-                <div class="slime-layer" id="slime-layer"></div>
-            </div>
-        </section>
-
         <nav class="tab-bar" aria-label="Profile sections">
             <button class="pak-tab active" type="button" data-panel="home">Home</button>
             <button class="pak-tab" type="button" data-panel="profile">Profile</button>
-            <button class="pak-tab" type="button" data-panel="projects">Projects</button>
             <button class="pak-tab" type="button" data-panel="publications">Publications</button>
             <button class="pak-tab" type="button" data-panel="news">News</button>
         </nav>
 
-        <section class="panel active" id="home" role="region" aria-label="Home">
-            <div class="panel-head">
-                <span id="home-header">Home</span>
-                <span class="badge" id="home-badge">Overview</span>
-            </div>
-            <div class="grid" id="home-grid">
-                <p class="loading">Loading home previews...</p>
-            </div>
-        </section>
+        <div class="page-layout">
+            <section class="panel-stack">
+                <section class="panel active" id="home" role="region" aria-label="Home">
+                    <div class="panel-head">
+                        <span id="home-header">Home</span>
+                        <span class="badge" id="home-badge">Overview</span>
+                    </div>
+                    <div class="grid" id="home-grid">
+                        <p class="loading">Loading home previews...</p>
+                    </div>
+                </section>
 
-        <section class="panel" id="profile" role="region" aria-label="Profile">
-            <div class="panel-head">
-                <span id="profile-header">Profile Data</span>
-                <span class="badge" id="profile-badge">Main Save</span>
-            </div>
-            <div class="grid" id="profile-grid">
-                <p class="loading">Loading profile data...</p>
-            </div>
-        </section>
+                <section class="panel" id="profile" role="region" aria-label="Profile">
+                    <div class="panel-head">
+                        <span id="profile-header">Profile Data</span>
+                        <span class="badge" id="profile-badge">Main Save</span>
+                    </div>
+                    <div id="profile-sections" class="profile-sections">
+                        <p class="loading">Loading profile sections...</p>
+                    </div>
+                </section>
 
-        <section class="panel" id="projects" role="region" aria-label="Projects">
-            <div class="panel-head">
-                <span id="projects-header">Project Inventory</span>
-                <span class="badge" id="projects-badge">3 Slots</span>
-            </div>
-            <div class="grid" id="projects-grid">
-                <p class="loading">Loading project data...</p>
-            </div>
-        </section>
+                <section class="panel" id="publications" role="region" aria-label="Publications">
+                    <div class="panel-head">
+                        <span id="publications-header">Publication Log</span>
+                        <span class="badge" id="publications-badge">Checkpoint</span>
+                    </div>
+                    <div class="timeline" id="publications-timeline">
+                        <p class="loading">Loading publication data...</p>
+                    </div>
+                </section>
 
-        <section class="panel" id="publications" role="region" aria-label="Publications">
-            <div class="panel-head">
-                <span id="publications-header">Publication Log</span>
-                <span class="badge" id="publications-badge">Checkpoint</span>
-            </div>
-            <div class="timeline" id="publications-timeline">
-                <p class="loading">Loading publication data...</p>
-            </div>
-        </section>
+                <section class="panel" id="news" role="region" aria-label="News">
+                    <div class="panel-head">
+                        <span id="news-header">News Feed</span>
+                        <span class="badge" id="news-badge">Live</span>
+                    </div>
+                    <div class="timeline" id="news-timeline">
+                        <p class="loading">Loading news data...</p>
+                    </div>
+                </section>
+            </section>
 
-        <section class="panel" id="news" role="region" aria-label="News">
-            <div class="panel-head">
-                <span id="news-header">News Feed</span>
-                <span class="badge" id="news-badge">Live</span>
-            </div>
-            <div class="timeline" id="news-timeline">
-                <p class="loading">Loading news data...</p>
-            </div>
-        </section>
+            <aside class="top-right-stack" aria-label="Meta and profile quick view">
+                <section class="hero-screen hero-right">
+                    <div class="boot-row">
+                        <span><span class="led"></span><span id="player-label">player 1</span></span>
+                        <span id="version-label">pixel hub v1.0</span>
+                    </div>
+                    <div class="meta-playground" id="meta-playground" aria-label="Interactive slime playground">
+                        <div class="meta-hud">
+                            <span id="meta-zone-title">Slime Meadow</span>
+                            <span id="meta-zone-hint">Move your cursor to play</span>
+                        </div>
+                        <div class="slime-layer" id="slime-layer"></div>
+                    </div>
+                </section>
+
+                <section class="profile-dock" aria-label="Profile quick view">
+                    <div class="dock-chip-row">
+                        <span class="badge" id="dock-profile-badge">Profile</span>
+                    </div>
+                    <div id="dock-profile-card" class="dock-body">
+                        <p class="loading">Loading profile snapshot...</p>
+                    </div>
+                    <div id="dock-profile-links" class="dock-links" aria-label="Profile links"></div>
+                </section>
+            </aside>
+        </div>
 
         <div class="footer-line">
             <span id="footer-hint">Press L/R (arrow keys) to switch game paks</span>
-            <span id="footer-copyright">Copyright 2026 Tom's Pixel Hub</span>
         </div>
     </main>
     <script src="assets/js/app.js"></script>

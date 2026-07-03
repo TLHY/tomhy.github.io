@@ -1,10 +1,10 @@
 {
   "meta": {
     "playerLabel": "Player 1",
-    "versionLabel": "pixel hub v1.0",
-    "footerHint": "Press L/R (arrow keys) to switch game paks",
+    "versionLabel": "Minigame hub v1.0",
+    "footerHint": "Press arrow keys to switch tab paks",
     "playground": {
-      "title": "[Slime Meadow Title]",
+      "title": "[Slime! Beta]",
       "hint": "[Move your cursor to play]",
       "slimeCount": 7,
       "minSize": 30,
@@ -23,40 +23,60 @@
   "profile": {
     "header": "Profile Data",
     "badge": "Main Save",
+    "dockBadge": "Profile",
+    "links": {
+      "linkedin": "[https://www.linkedin.com/in/hyung-il-yi-5875b217b/]",
+      "email": "[hylee0922@kaist.ac.kr]"
+    },
     "cards": [
       {
-        "title": "Hyung Il Yi(aka Tom Lee)",
-        "text": "Hello World! Welcome to my personal website. I am a PhD. student in KAIST. My main interest is haptic interaction between the real world and the virtual world."
+        "title": "Hyung Il Yi",
+        "text": "Hello World! I am a PhD. student in KAIST. \n My main interest is haptic interaction between the real world and the virtual world.",
+        "image": "images/Question.png"
       },
       {
         "title": "Skills & Interests",
         "list": [
-          "[Role: ...]",
-          "[Focus: ...]",
-          "[Current Quest: ...]"
+          "[Human Computer Interaction, Multimodal Haptic Interaction]",
+          "[Virtual Reality, Augmented Reality]",
+          "[Interaction Design, User Experience Design]"
         ]
       }
     ]
   },
-  "projects": {
-    "header": "Project Inventory",
-    "badge": "3 Slots",
-    "cards": [
+  "profileTab": {
+    "aboutMeTitle": "About Me",
+    "aboutMe": [
+    {
+        "title": "[Hello!]",
+        "text": "[Welcome]"
+    }
+    ],
+    "researchExperienceTitle": "Research Experience",
+    "researchExperience": [
       {
-        "title": "[Project 1 Title]",
-        "text": "[One-sentence project description.]"
-      },
+        "period": "[0000 - 0000]",
+        "title": "[Loading...]",
+        "text": "[No Save Data!]",
+        "link": "[https://your-link-here]"
+      }
+    ],
+    "honorsAwardsTitle": "Honors & Awards",
+    "honorsAwards": [
       {
-        "title": "[Project 2 Title]",
-        "text": "[One-sentence project description.]"
-      },
+        "period": "[0000]",
+        "title": "[Loading...]",
+        "text": "[No Save Data!]",
+        "link": "[https://your-link-here]"
+      }
+    ],
+    "activitiesTitle": "Activities",
+    "activities": [
       {
-        "title": "[Project 3 Title]",
-        "text": "[One-sentence project description.]"
-      },
-      {
-        "title": "[Project 4 Title]",
-        "text": "[One-sentence project description.]"
+        "period": "[0000]",
+        "title": "[Loading...]",
+        "text": "[No Save Data!]",
+        "link": "[https://your-link-here]"
       }
     ]
   },
@@ -65,19 +85,20 @@
     "badge": "Checkpoint",
     "entries": [
       {
-        "date": "[YYYY.MM]",
-        "title": "[Publication Title 1]",
-        "text": "[Venue, award, or short note.]"
+        "date": "[2025.10]",
+        "title": "[InvisiBow: Finger-Held Device for Bimanual Haptic Illusions during Virtual Archery]",
+        "text": "[Authors: **Hyung Il Yi^**, Kun-Woo Song^, Nihar Sabnis, Andrea Bianchi, Sang Ho Yoon]",
+        "text2": "[Conference: ACM ISWC 2025]",
+        "link": "[https://dl.acm.org/doi/10.1145/3715071.3750428]",
+        "image": "images/InvisiBowTeaser.png"
       },
       {
-        "date": "[YYYY.MM]",
-        "title": "[Publication Title 2]",
-        "text": "[Venue, award, or short note.]"
-      },
-      {
-        "date": "[YYYY.MM]",
-        "title": "[Publication Title 3]",
-        "text": "[Venue, award, or short note.]"
+        "date": "[2024.10]",
+        "title": "[ThermicVib: Enabling Dynamic Thermal Sensation with Multimodal Haptic Glove for Thermal-Responsive Interaction]",
+        "text": "[Authors: **Hyung Il Yi**, Hojeong Lee, Sang Ho Yoon]",
+        "text2": "[Conference: IEEE ISMAR 2024]",
+        "link": "[https://thermicvib.hcitech.org/]",
+        "image": "images/ThermicVibTeaser.png"
       }
     ]
   },
@@ -86,14 +107,9 @@
     "badge": "Live",
     "entries": [
       {
-        "date": "[Month YYYY]",
-        "title": "[News Title 1]",
-        "text": "[One-sentence news update.]"
-      },
-      {
-        "date": "[Month YYYY]",
-        "title": "[News Title 2]",
-        "text": "[One-sentence news update.]"
+        "date": "[07.03.2026]",
+        "title": "[HomePage Update]",
+        "text": "[Made my first homepage!]"
       }
     ]
   },
@@ -105,10 +121,9 @@
       "orderMode": "as-listed"
     },
     "cardTitles": {
-      "profile": "[Profile Preview Title]",
-      "projects": "[Projects Preview Title]",
-      "publications": "[Publications Preview Title]",
-      "news": "[News Preview Title]"
+      "profile": "[Profile]",
+      "publications": "[Publications]",
+      "news": "[News]"
     }
   }
 }

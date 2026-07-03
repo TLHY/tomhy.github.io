@@ -14,7 +14,6 @@ Edit only data/content.json to change content in:
 - meta labels and slime playground settings (meta)
 - home preview behavior and card titles (home)
 - profile cards (profile.cards)
-- project cards (projects.cards)
 - publications timeline (publications.entries)
 - news timeline (news.entries)
 
@@ -43,9 +42,21 @@ Each card supports:
 
 - title + text
 - or title + list (array of bullet items)
+- optional image + imageAlt
 
 Each timeline entry supports:
 
 - date
 - title
 - text
+- optional text2 (additional information line)
+- optional link (shows page-link icon)
+- optional image + imageAlt
+
+## Text Formatting
+
+Use double asterisks for bold text inside text/list fields:
+
+- Example: `I am a **PhD student** in KAIST.`
+
+Line breaks are also supported by using new lines in the text value.
