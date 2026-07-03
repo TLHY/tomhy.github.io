@@ -16,19 +16,34 @@
                 <span><span class="led"></span><span id="player-label">player 1</span></span>
                 <span id="version-label">pixel hub v1.0</span>
             </div>
-            <h1 class="pixel-title" id="site-title">Tom's Game Pak Portfolio</h1>
-            <p class="hero-note" id="site-subtitle">Choose a game pak tab to load your world.</p>
+            <div class="meta-playground" id="meta-playground" aria-label="Interactive slime playground">
+                <div class="meta-hud">
+                    <span id="meta-zone-title">Slime Meadow</span>
+                    <span id="meta-zone-hint">Move your cursor to play</span>
+                </div>
+                <div class="slime-layer" id="slime-layer"></div>
+            </div>
         </section>
 
         <nav class="tab-bar" aria-label="Profile sections">
-            <button class="pak-tab active" type="button" data-panel="profile">Profile</button>
+            <button class="pak-tab active" type="button" data-panel="home">Home</button>
+            <button class="pak-tab" type="button" data-panel="profile">Profile</button>
             <button class="pak-tab" type="button" data-panel="projects">Projects</button>
             <button class="pak-tab" type="button" data-panel="publications">Publications</button>
             <button class="pak-tab" type="button" data-panel="news">News</button>
-            <button class="pak-tab" type="button" data-panel="life">Life Log</button>
         </nav>
 
-        <section class="panel active" id="profile" role="region" aria-label="Profile">
+        <section class="panel active" id="home" role="region" aria-label="Home">
+            <div class="panel-head">
+                <span id="home-header">Home</span>
+                <span class="badge" id="home-badge">Overview</span>
+            </div>
+            <div class="grid" id="home-grid">
+                <p class="loading">Loading home previews...</p>
+            </div>
+        </section>
+
+        <section class="panel" id="profile" role="region" aria-label="Profile">
             <div class="panel-head">
                 <span id="profile-header">Profile Data</span>
                 <span class="badge" id="profile-badge">Main Save</span>
@@ -65,16 +80,6 @@
             </div>
             <div class="timeline" id="news-timeline">
                 <p class="loading">Loading news data...</p>
-            </div>
-        </section>
-
-        <section class="panel" id="life" role="region" aria-label="Personal life">
-            <div class="panel-head">
-                <span id="life-header">Life Log</span>
-                <span class="badge" id="life-badge">Bonus Stage</span>
-            </div>
-            <div class="grid" id="life-grid">
-                <p class="loading">Loading life log data...</p>
             </div>
         </section>
 
