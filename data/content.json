@@ -3,19 +3,26 @@
     "playerLabel": "Player 1",
     "footerHint": "Press arrow keys to switch tab paks",
     "playground": {
-      "title": "[Slime! Beta]",
-      "hint": "[Move your cursor to play]",
-      "slimeCount": 8,
+      "title": "The Field",
+      "hint": "",
+      "slimeCount": 4,
       "minSize": 30,
       "maxSize": 44,
       "speed": 44,
       "reactionRadius": 95,
       "colors": [
-        "#94d66a",
-        "#73c66d",
-        "#6ab88a",
-        "#b4e36f",
-        "#79d499"
+        "#6f8fca",
+        "#8d78c9",
+        "#c78258",
+        "#4d9c88",
+        "#9a86c7",
+        "#5f9bc0"
+      ],
+      "names": [
+        "Sword",
+        "Mage",
+        "Healer",
+        "Archer"
       ]
     }
   },
@@ -24,8 +31,8 @@
     "badge": "Main Save",
     "dockBadge": "Profile",
     "links": {
-      "linkedin": "[https://www.linkedin.com/in/hyung-il-yi-5875b217b/]",
-      "email": "[hylee0922@kaist.ac.kr]"
+      "linkedin": "https://www.linkedin.com/in/hyung-il-yi-5875b217b/",
+      "email": "hylee0922@kaist.ac.kr"
     },
     "cards": [
       {
@@ -36,9 +43,9 @@
       {
         "title": "Skills & Interests",
         "list": [
-          "[Human Computer Interaction, Multimodal Haptic Interaction]",
-          "[Virtual Reality, Augmented Reality]",
-          "[Interaction Design, User Experience Design]"
+          "Human Computer Interaction, Multimodal Haptic Interaction",
+          "Virtual Reality, Augmented Reality",
+          "Interaction Design, User Experience Design"
         ]
       }
     ]
@@ -47,41 +54,41 @@
     "aboutMeTitle": "About Me",
     "aboutMe": [
     {
-        "title": "[Hello!]",
-        "text": "[Welcome]"
+        "title": "Hello!",
+        "text": "Welcome"
     }
     ],
     "researchExperienceTitle": "Research Experience",
     "researchExperience": [
       {
-        "period": "[0000 - 0000]",
-        "title": "[Loading...]",
-        "text": "[No Save Data!]",
-        "link": "[https://your-link-here]"
+        "period": "0000 - 0000",
+        "title": "Loading...",
+        "text": "No Save Data!",
+        "link": "https://your-link-here"
       }
     ],
     "honorsAwardsTitle": "Honors & Awards",
     "honorsAwards": [
       {
-        "period": "[2023.10]",
-        "title": "[Korea Haptics Society]",
-        "text": "[Best Paper Award]",
-        "link": "[https://haptics.or.kr/conference/award.php]"
+        "period": "2023.10",
+        "title": "Korea Haptics Society",
+        "text": "Best Paper Award",
+        "link": "https://haptics.or.kr/conference/award.php"
       }
     ],
     "activitiesTitle": "Activities",
     "activities": [
       {
-        "period": "[2024]",
-        "title": "[Student Volunteer at IEEE ISMAR 2024]"
+        "period": "2024",
+        "title": "Student Volunteer at IEEE ISMAR 2024"
       },
       {
-        "period": "[2024]",
-        "title": "[Student Volunteer at CHI 2024]"
+        "period": "2024",
+        "title": "Student Volunteer at CHI 2024"
       },
       {
-        "period": "[2023]",
-        "title": "[Student Volunteer at Korea Haptics Society 2023]"
+        "period": "2023",
+        "title": "Student Volunteer at Korea Haptics Society 2023"
       }
     ]
   },
@@ -90,26 +97,26 @@
     "badge": "Checkpoint",
     "entries": [
       {
-        "date": "[2025.10]",
-        "title": "[InvisiBow: Finger-Held Device for Bimanual Haptic Illusions during Virtual Archery]",
-        "text": "[Authors: **Hyung Il Yi^**, Kun-Woo Song^, Nihar Sabnis, Andrea Bianchi, Sang Ho Yoon]",
-        "text2": "[Conference: ACM ISWC 2025]",
-        "link": "[https://dl.acm.org/doi/10.1145/3715071.3750428]",
+        "date": "2025.10",
+        "title": "InvisiBow: Finger-Held Device for Bimanual Haptic Illusions during Virtual Archery",
+        "text": "Authors: **Hyung Il Yi^**, Kun-Woo Song^, Nihar Sabnis, Andrea Bianchi, Sang Ho Yoon",
+        "text2": "Conference: ACM ISWC 2025",
+        "link": "https://dl.acm.org/doi/10.1145/3715071.3750428",
         "image": "images/InvisiBowTeaser.png"
       },
       {
-        "date": "[2024.10]",
-        "title": "[ThermicVib: Enabling Dynamic Thermal Sensation with Multimodal Haptic Glove for Thermal-Responsive Interaction]",
-        "text": "[Authors: **Hyung Il Yi**, Hojeong Lee, Sang Ho Yoon]",
-        "text2": "[Conference: IEEE ISMAR 2024]",
-        "link": "[https://thermicvib.hcitech.org/]",
+        "date": "2024.10",
+        "title": "ThermicVib: Enabling Dynamic Thermal Sensation with Multimodal Haptic Glove for Thermal-Responsive Interaction",
+        "text": "Authors: **Hyung Il Yi**, Hojeong Lee, Sang Ho Yoon",
+        "text2": "Conference: IEEE ISMAR 2024",
+        "link": "https://thermicvib.hcitech.org/",
         "image": "images/ThermicVibTeaser.png"
       },{
-        "date": "[2024.5]",
-        "title": "[Adaptive and Immersive XR Interactions with Wearable Interfaces (Demo of KAIST HCI Tech Lab)]",
-        "text": "[Authors: Sang Ho Yoon, Youjin Sung, Kun Woo Song, Kyungeun Jung, Kyungjin Seo, Jina Kim, **Hyung Il Yi**, Nicha Vanichvoranun, Hanseok Jeong, and Hojeong Lee]",
-        "text2": "[Conference: CHI 2024]",
-        "link": "[https://dl.acm.org/doi/10.1145/3613905.3648652]",
+        "date": "2024.5",
+        "title": "Adaptive and Immersive XR Interactions with Wearable Interfaces (Demo of KAIST HCI Tech Lab)",
+        "text": "Authors: Sang Ho Yoon, Youjin Sung, Kun Woo Song, Kyungeun Jung, Kyungjin Seo, Jina Kim, **Hyung Il Yi**, Nicha Vanichvoranun, Hanseok Jeong, and Hojeong Lee",
+        "text2": "Conference: CHI 2024",
+        "link": "https://dl.acm.org/doi/10.1145/3613905.3648652",
         "image": "images/CHIInterTeaser.png"
       }
     ]
@@ -119,9 +126,9 @@
     "badge": "Live",
     "entries": [
       {
-        "date": "[07.03.2026]",
-        "title": "[HomePage Update]",
-        "text": "[Made my first homepage!]"
+        "date": "07.03.2026",
+        "title": "HomePage Update",
+        "text": "Made my first homepage!"
       }
     ]
   },
@@ -133,9 +140,9 @@
       "orderMode": "as-listed"
     },
     "cardTitles": {
-      "profile": "[Profile]",
-      "publications": "[Publications]",
-      "news": "[News]"
+      "profile": "Profile",
+      "publications": "Publications",
+      "news": "News"
     }
   }
 }

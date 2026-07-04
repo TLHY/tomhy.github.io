@@ -7,20 +7,34 @@ function normalizeUrl(value) {
         return "";
     }
 
-    const trimmed = value.trim();
-    if (!trimmed) {
+    const cleaned = normalizeDisplayText(value);
+    if (!cleaned) {
         return "";
     }
 
-    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-        return trimmed.slice(1, -1).trim();
+    return cleaned;
+}
+
+function normalizeDisplayText(value) {
+    if (typeof value !== "string") {
+        return "";
     }
 
-    return trimmed;
+    let text = value.trim();
+    if (!text) {
+        return "";
+    }
+
+    // Remove decorative wrappers like [Text] while preserving inner content.
+    while (text.startsWith("[") && text.endsWith("]") && text.length > 1) {
+        text = text.slice(1, -1).trim();
+    }
+
+    return text;
 }
 
 function appendFormattedText(container, text) {
-    const content = typeof text === "string" ? text : "";
+    const content = normalizeDisplayText(text);
     const lines = content.split("\n");
 
     lines.forEach((line, lineIndex) => {
@@ -214,7 +228,7 @@ function createTimelineEntry(entry) {
     wrapper.className = "timeline-entry";
 
     const time = document.createElement("time");
-    time.textContent = entry.date || "TBD";
+    time.textContent = normalizeDisplayText(entry.date) || "TBD";
 
     const card = document.createElement("div");
     card.className = "pixel-card publication-card";
@@ -272,7 +286,7 @@ function createTimelineEntry(entry) {
 function setText(id, value) {
     const element = document.getElementById(id);
     if (element && typeof value === "string") {
-        element.textContent = value;
+        element.textContent = normalizeDisplayText(value);
     }
 }
 
@@ -283,8 +297,6 @@ function randomBetween(min, max) {
 function initSlimePlayground(meta = {}) {
     const playground = document.getElementById("meta-playground");
     const slimeLayer = document.getElementById("slime-layer");
-    const zoneTitle = document.getElementById("meta-zone-title");
-    const zoneHint = document.getElementById("meta-zone-hint");
 
     if (!playground || !slimeLayer) {
         return;
@@ -295,78 +307,476 @@ function initSlimePlayground(meta = {}) {
     }
 
     const config = meta.playground || {};
-    const count = Math.max(2, Math.min(Number(config.slimeCount) || 6, 16));
-    const minSize = Math.max(22, Number(config.minSize) || 30);
-    const maxSize = Math.max(minSize, Number(config.maxSize) || 44);
-    const speed = Math.max(12, Number(config.speed) || 42);
-    const reactionRadius = Math.max(50, Number(config.reactionRadius) || 90);
-    const colors = Array.isArray(config.colors) && config.colors.length > 0
-        ? config.colors
-        : ["#94d66a", "#73c66d", "#6ab88a", "#b4e36f", "#79d499"];
-
-    setText("meta-zone-title", config.title || "Slime Meadow");
-    setText("meta-zone-hint", config.hint || "Move your cursor to play");
+    setText("meta-zone-title", config.title || "Digital Care Lab");
+    setText("meta-zone-hint", typeof config.hint === "string" ? config.hint : "");
 
     slimeLayer.innerHTML = "";
 
-    const slimes = [];
-    let rafId = 0;
-    let lastTime = performance.now();
-    const cursor = {
-        x: -9999,
-        y: -9999,
-        active: false
+    const SAVE_KEY = "tomhy_digipet_v1";
+    const SAVE_INTERVAL_MS = 5000;
+    const STAGE_EXP = [0, 30, 90, 160];
+    const stageBranches = {
+        good: [
+            { label: "", role: "healer" },
+            { label: "Rookie", role: "archer" },
+            { label: "Champion", role: "sword" },
+            { label: "Ultimate", role: "mage" }
+        ],
+        bad: [
+            { label: "", role: "healer" },
+            { label: "Rookie-Virus", role: "archer" },
+            { label: "Champion-Rogue", role: "sword" },
+            { label: "Ultimate-Fallen", role: "mage" }
+        ]
     };
 
-    function getBounds() {
-        const layerRect = slimeLayer.getBoundingClientRect();
+    function createInitialPet() {
         return {
-            width: Math.max(80, layerRect.width),
-            height: Math.max(60, layerRect.height)
+            x: 0,
+            y: 0,
+            targetX: 0,
+            targetY: 0,
+            facingRight: false,
+            size: 40,
+            moveSpeed: randomBetween(20, 36),
+            wobbleOffset: randomBetween(0, Math.PI * 2),
+            roamPauseUntil: 0,
+            restingUntil: 0,
+            castUntil: 0,
+            stageIndex: 0,
+            branch: "undecided",
+            sickness: false,
+            mess: 18,
+            careMistakes: 0,
+            nextMessAt: 0,
+            nextMistakeAt: 0,
+            stats: {
+                health: 84,
+                hunger: 72,
+                happiness: 68,
+                hygiene: 66,
+                energy: 70,
+                exp: 0,
+                age: 0
+            }
         };
     }
 
-    function placeSlime(slime, bounds) {
-        slime.x = randomBetween(0, Math.max(1, bounds.width - slime.size));
-        slime.y = randomBetween(0, Math.max(1, bounds.height - slime.size));
+    const pet = createInitialPet();
+    let lastSaveAt = 0;
+    let rafId = 0;
+    let lastTime = performance.now();
+
+    const petEl = document.createElement("div");
+    petEl.className = "ro-char use-idle-sheet tamagotchi-pet role-healer";
+    petEl.style.setProperty("--char-size", `${pet.size}px`);
+
+    const shadow = document.createElement("span");
+    shadow.className = "ro-shadow";
+
+    const sprite = document.createElement("div");
+    sprite.className = "ro-sprite";
+
+    const idleSheet = document.createElement("span");
+    idleSheet.className = "ro-idle-sheet";
+
+    const fightSheet = document.createElement("span");
+    fightSheet.className = "ro-fight-sheet";
+
+    const nameTag = document.createElement("span");
+    nameTag.className = "ro-name";
+    nameTag.textContent = "";
+
+    const emote = document.createElement("span");
+    emote.className = "ro-emote";
+    emote.textContent = "!";
+
+    sprite.appendChild(idleSheet);
+    sprite.appendChild(fightSheet);
+    petEl.appendChild(shadow);
+    petEl.appendChild(sprite);
+    petEl.appendChild(nameTag);
+    petEl.appendChild(emote);
+    slimeLayer.appendChild(petEl);
+
+    const panel = document.createElement("div");
+    panel.className = "tama-panel is-hidden";
+
+    const panelHead = document.createElement("div");
+    panelHead.className = "tama-panel-head";
+
+    const panelTitle = document.createElement("span");
+    panelTitle.className = "tama-panel-title";
+    panelTitle.textContent = "STATUS";
+    panelHead.appendChild(panelTitle);
+
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "tama-close";
+    closeBtn.textContent = "X";
+    closeBtn.setAttribute("aria-label", "Close status window");
+    panelHead.appendChild(closeBtn);
+
+    panel.appendChild(panelHead);
+
+    const statusLine = document.createElement("div");
+    statusLine.className = "tama-status";
+    panel.appendChild(statusLine);
+
+    const bars = document.createElement("div");
+    bars.className = "tama-bars";
+    panel.appendChild(bars);
+
+    const controls = document.createElement("div");
+    controls.className = "tama-controls";
+    panel.appendChild(controls);
+
+    slimeLayer.appendChild(panel);
+
+    const statusBtn = document.createElement("button");
+    statusBtn.type = "button";
+    statusBtn.className = "tama-status-trigger";
+    statusBtn.textContent = "STATUS";
+    statusBtn.setAttribute("aria-expanded", "false");
+    statusBtn.setAttribute("aria-controls", "tama-status-panel");
+    panel.id = "tama-status-panel";
+    slimeLayer.appendChild(statusBtn);
+
+    function openStatusPanel() {
+        panel.classList.remove("is-hidden");
+        statusBtn.setAttribute("aria-expanded", "true");
     }
 
-    for (let i = 0; i < count; i += 1) {
-        const slime = document.createElement("div");
-        slime.className = "slime";
-        const size = randomBetween(minSize, maxSize);
-        slime.style.setProperty("--slime-size", `${Math.round(size)}px`);
-        slime.style.setProperty("--slime-color", colors[i % colors.length]);
+    function closeStatusPanel() {
+        panel.classList.add("is-hidden");
+        statusBtn.setAttribute("aria-expanded", "false");
+    }
 
-        slime.addEventListener("mouseenter", () => {
-            slime.classList.add("is-alert", "is-bop");
-            setTimeout(() => slime.classList.remove("is-bop"), 230);
+    function toggleStatusPanel() {
+        if (panel.classList.contains("is-hidden")) {
+            openStatusPanel();
+        } else {
+            closeStatusPanel();
+        }
+    }
+
+    statusBtn.addEventListener("click", toggleStatusPanel);
+    closeBtn.addEventListener("click", closeStatusPanel);
+
+    function createBar(label) {
+        const row = document.createElement("div");
+        row.className = "tama-row";
+        const text = document.createElement("span");
+        text.className = "tama-label";
+        text.textContent = label;
+        const bar = document.createElement("span");
+        bar.className = "tama-bar";
+        const fill = document.createElement("span");
+        fill.className = "tama-fill";
+        bar.appendChild(fill);
+        row.appendChild(text);
+        row.appendChild(bar);
+        bars.appendChild(row);
+        return fill;
+    }
+
+    const fills = {
+        health: createBar("HP"),
+        hunger: createBar("HUN"),
+        happiness: createBar("JOY"),
+        hygiene: createBar("CLR"),
+        energy: createBar("ENE"),
+        mess: createBar("MS")
+    };
+
+    function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    function showPopup(text) {
+        const pop = document.createElement("span");
+        pop.className = "ro-damage";
+        pop.textContent = text;
+        pop.style.left = `${pet.x + pet.size / 2 + randomBetween(-8, 8)}px`;
+        pop.style.top = `${pet.y - 8}px`;
+        slimeLayer.appendChild(pop);
+        setTimeout(() => pop.remove(), 620);
+    }
+
+    function getStageByPet() {
+        const branch = pet.branch === "bad" ? "bad" : "good";
+        return stageBranches[branch][pet.stageIndex];
+    }
+
+    function savePetState(force = false) {
+        if (!force && performance.now() - lastSaveAt < SAVE_INTERVAL_MS) {
+            return;
+        }
+
+        try {
+            localStorage.setItem(
+                SAVE_KEY,
+                JSON.stringify({
+                    stageIndex: pet.stageIndex,
+                    branch: pet.branch,
+                    sickness: pet.sickness,
+                    mess: pet.mess,
+                    careMistakes: pet.careMistakes,
+                    stats: pet.stats,
+                    savedAt: Date.now()
+                })
+            );
+            lastSaveAt = performance.now();
+        } catch (error) {
+            // Storage can fail in restricted browser contexts.
+        }
+    }
+
+    function loadPetState() {
+        try {
+            const raw = localStorage.getItem(SAVE_KEY);
+            if (!raw) {
+                return;
+            }
+
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== "object") {
+                return;
+            }
+
+            pet.stageIndex = clamp(Number(parsed.stageIndex) || 0, 0, STAGE_EXP.length - 1);
+            pet.branch = parsed.branch === "bad" ? "bad" : parsed.branch === "good" ? "good" : "undecided";
+            pet.sickness = Boolean(parsed.sickness);
+            pet.mess = clamp(Number(parsed.mess) || 0, 0, 100);
+            pet.careMistakes = clamp(Number(parsed.careMistakes) || 0, 0, 999);
+
+            const stats = parsed.stats || {};
+            ["health", "hunger", "happiness", "hygiene", "energy", "exp", "age"].forEach((key) => {
+                const value = Number(stats[key]);
+                if (Number.isFinite(value)) {
+                    pet.stats[key] = key === "age" ? clamp(value, 0, 10000) : clamp(value, 0, 200);
+                }
+            });
+        } catch (error) {
+            // Ignore corrupt or unavailable storage.
+        }
+    }
+
+    function applyRoleFromStage() {
+        const stage = getStageByPet();
+        petEl.classList.remove("role-healer", "role-archer", "role-sword", "role-mage");
+        petEl.classList.add(`role-${stage.role}`);
+        nameTag.textContent = "";
+    }
+
+    function updateEvolution() {
+        const score = (pet.stats.health + pet.stats.happiness + pet.stats.hygiene + pet.stats.energy + pet.stats.hunger - pet.mess) / 5;
+
+        if (pet.branch === "undecided" && pet.stats.exp >= STAGE_EXP[1]) {
+            const goodPath = pet.careMistakes <= 2 && score >= 50 && !pet.sickness;
+            pet.branch = goodPath ? "good" : "bad";
+            showPopup(goodPath ? "GOOD PATH" : "DARK PATH");
+        }
+
+        let nextStage = 0;
+        if (pet.stats.exp >= STAGE_EXP[3] && (pet.branch === "bad" || score >= 60)) {
+            nextStage = 3;
+        } else if (pet.stats.exp >= STAGE_EXP[2] && (pet.branch === "bad" || score >= 48)) {
+            nextStage = 2;
+        } else if (pet.stats.exp >= STAGE_EXP[1] && (pet.branch === "bad" || score >= 40)) {
+            nextStage = 1;
+        }
+
+        if (nextStage !== pet.stageIndex) {
+            pet.stageIndex = nextStage;
+            applyRoleFromStage();
+            petEl.classList.add("is-cast");
+            emote.textContent = "!";
+            showPopup("DIGIVOLVE");
+            setTimeout(() => {
+                petEl.classList.remove("is-cast");
+                emote.textContent = "~";
+            }, 520);
+            savePetState(true);
+        }
+    }
+
+    function clearPetState() {
+        Object.assign(pet, createInitialPet());
+        applyRoleFromStage();
+        updateBars();
+        updateStatus(performance.now());
+        try {
+            localStorage.removeItem(SAVE_KEY);
+        } catch (error) {
+            // Ignore storage cleanup failures.
+        }
+        showPopup("RESET");
+    }
+
+    function action(type) {
+        const now = performance.now();
+
+        if (type === "feed") {
+            pet.stats.hunger += 26;
+            pet.stats.happiness += 6;
+            pet.stats.exp += 5;
+            showPopup("+FOOD");
+        }
+
+        if (type === "play") {
+            pet.stats.happiness += 20;
+            pet.stats.energy -= 10;
+            pet.stats.hunger -= 7;
+            pet.stats.exp += 8;
+            showPopup("+JOY");
+        }
+
+        if (type === "clean") {
+            pet.stats.hygiene += 28;
+            pet.mess -= 42;
+            pet.stats.exp += 4;
+            showPopup("+CLEAN");
+        }
+
+        if (type === "rest") {
+            pet.restingUntil = now + 7000;
+            pet.stats.exp += 2;
+            emote.textContent = "z";
+            showPopup("REST");
+        }
+
+        if (type === "train") {
+            pet.castUntil = now + 450;
+            pet.stats.energy -= 12;
+            pet.stats.hunger -= 5;
+            pet.stats.happiness += 4;
+            pet.stats.exp += randomBetween(10, 16);
+            emote.textContent = "*";
+            showPopup("+XP");
+        }
+
+        if (type === "medic") {
+            pet.stats.energy -= 4;
+            pet.stats.happiness -= 6;
+            if (pet.sickness && Math.random() < 0.8) {
+                pet.sickness = false;
+                pet.stats.health += 10;
+                showPopup("CURED");
+            } else {
+                showPopup("MED");
+            }
+        }
+
+        if (type === "reset") {
+            clearPetState();
+            return;
+        }
+
+        ["health", "hunger", "happiness", "hygiene", "energy", "exp"].forEach((key) => {
+            pet.stats[key] = clamp(pet.stats[key], 0, 200);
         });
+        pet.mess = clamp(pet.mess, 0, 100);
 
-        slime.addEventListener("mouseleave", () => {
-            slime.classList.remove("is-alert");
-        });
+        updateEvolution();
+        updateBars();
+        updateStatus(now);
+        savePetState();
+    }
 
-        slimeLayer.appendChild(slime);
+    [
+        { label: "FEED", id: "feed" },
+        { label: "PLAY", id: "play" },
+        { label: "CLEAN", id: "clean" },
+        { label: "REST", id: "rest" },
+        { label: "TRAIN", id: "train" },
+        { label: "MED", id: "medic" },
+        { label: "RESET", id: "reset" }
+    ].forEach((control) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "tama-btn";
+        btn.textContent = control.label;
+        btn.addEventListener("click", () => action(control.id));
+        controls.appendChild(btn);
+    });
 
-        slimes.push({
-            el: slime,
-            size,
-            x: 0,
-            y: 0,
-            vx: randomBetween(-1, 1) * speed,
-            vy: randomBetween(-1, 1) * speed,
-            wobbleOffset: randomBetween(0, Math.PI * 2),
-            alertUntil: 0
+    function updateBars() {
+        Object.keys(fills).forEach((key) => {
+            const source = key === "mess" ? pet.mess : pet.stats[key];
+            const value = clamp(source, 0, 100);
+            fills[key].style.width = `${value}%`;
         });
     }
 
-    const initialBounds = getBounds();
-    slimes.forEach((slime) => placeSlime(slime, initialBounds));
+    function getBounds() {
+        const rect = slimeLayer.getBoundingClientRect();
+        return {
+            width: Math.max(120, rect.width),
+            height: Math.max(90, rect.height)
+        };
+    }
 
-    function updateVisual(slime, now) {
-        const wobble = Math.sin(now * 0.006 + slime.wobbleOffset) * 0.08;
-        slime.el.style.transform = `translate(${slime.x}px, ${slime.y}px) scale(${1 + wobble}, ${1 - wobble})`;
+    function placePet(bounds) {
+        pet.x = bounds.width * 0.5 - pet.size * 0.5;
+        pet.y = bounds.height * 0.42 - pet.size * 0.45;
+        pet.targetX = pet.x;
+        pet.targetY = pet.y;
+    }
+
+    function pickRoamTarget(bounds) {
+        const margin = 8;
+        const minX = margin;
+        const maxX = Math.max(minX, bounds.width - pet.size - margin);
+        const minY = margin;
+        const maxY = Math.max(minY, bounds.height - pet.size - margin);
+        pet.targetX = randomBetween(minX, maxX);
+        pet.targetY = randomBetween(minY, maxY);
+    }
+
+    function updateRoaming(dt, now, bounds) {
+        const resting = now < pet.restingUntil;
+        const speed = pet.moveSpeed * (resting ? 0.3 : 1);
+
+        if (!pet.targetX && !pet.targetY) {
+            pickRoamTarget(bounds);
+        }
+
+        if (now >= pet.roamPauseUntil) {
+            const dx = pet.targetX - pet.x;
+            const dy = pet.targetY - pet.y;
+            const distance = Math.hypot(dx, dy);
+
+            if (Math.abs(dx) > 0.15) {
+                pet.facingRight = dx > 0;
+            }
+
+            if (distance <= 1.2) {
+                pet.roamPauseUntil = now + randomBetween(300, 1400);
+                pickRoamTarget(bounds);
+            } else if (distance > 0) {
+                const step = Math.min(distance, speed * dt);
+                pet.x += (dx / distance) * step;
+                pet.y += (dy / distance) * step;
+            }
+        }
+
+        const margin = 8;
+        const maxX = Math.max(margin, bounds.width - pet.size - margin);
+        const maxY = Math.max(margin, bounds.height - pet.size - margin);
+        pet.x = clamp(pet.x, margin, maxX);
+        pet.y = clamp(pet.y, margin, maxY);
+    }
+
+    function updateStatus(now) {
+        const resting = now < pet.restingUntil;
+        const low = [pet.stats.hunger, pet.stats.happiness, pet.stats.hygiene, pet.stats.energy].some((v) => v < 20);
+        const mood = pet.sickness ? "Sick" : resting ? "Sleeping" : low ? "Worried" : "Active";
+        const stage = getStageByPet();
+        const branchLabel = pet.branch === "bad" ? "Virus" : pet.branch === "good" ? "Vaccine" : "Neutral";
+        const stagePrefix = stage.label ? `${stage.label} | ` : "";
+        statusLine.textContent = `${stagePrefix}Mood: ${mood} | Path: ${branchLabel} | Mistakes ${pet.careMistakes} | EXP ${Math.floor(pet.stats.exp)} | Age ${Math.floor(pet.stats.age)}m`;
+        emote.textContent = resting ? "z" : pet.sickness ? "x" : low ? "!" : "~";
     }
 
     function tick(now) {
@@ -374,94 +784,108 @@ function initSlimePlayground(meta = {}) {
         lastTime = now;
         const bounds = getBounds();
 
-        slimes.forEach((slime) => {
-            let ax = 0;
-            let ay = 0;
+        const resting = now < pet.restingUntil;
+        pet.stats.age += dt / 6;
 
-            if (cursor.active) {
-                const slimeCenterX = slime.x + slime.size / 2;
-                const slimeCenterY = slime.y + slime.size / 2;
-                const dx = slimeCenterX - cursor.x;
-                const dy = slimeCenterY - cursor.y;
-                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        pet.stats.hunger -= dt * (resting ? 0.6 : 1.2);
+        pet.stats.happiness -= dt * (resting ? 0.35 : 0.7);
+        pet.stats.hygiene -= dt * 0.55;
+        pet.stats.energy += dt * (resting ? 4.8 : -0.9);
+        pet.mess += dt * (resting ? 0.35 : 0.6);
 
-                if (dist < reactionRadius) {
-                    const force = (reactionRadius - dist) / reactionRadius;
-                    ax += (dx / dist) * force * 220;
-                    ay += (dy / dist) * force * 220;
-                    slime.alertUntil = now + 140;
-                }
-            }
+        if (!pet.nextMessAt) {
+            pet.nextMessAt = now + randomBetween(12000, 22000);
+        }
 
-            slime.vx += ax * dt;
-            slime.vy += ay * dt;
+        if (now >= pet.nextMessAt) {
+            pet.mess += randomBetween(14, 24);
+            pet.stats.hygiene -= randomBetween(4, 8);
+            showPopup("MESS!");
+            pet.nextMessAt = now + randomBetween(13000, 24000);
+        }
 
-            const maxVelocity = speed * 1.8;
-            slime.vx = Math.max(-maxVelocity, Math.min(maxVelocity, slime.vx));
-            slime.vy = Math.max(-maxVelocity, Math.min(maxVelocity, slime.vy));
+        const lowCount = [pet.stats.hunger, pet.stats.happiness, pet.stats.hygiene, pet.stats.energy].filter((v) => v < 20).length;
 
-            slime.x += slime.vx * dt;
-            slime.y += slime.vy * dt;
+        if (!pet.sickness && (lowCount >= 2 || pet.mess > 70) && Math.random() < dt * 0.35) {
+            pet.sickness = true;
+            showPopup("SICK");
+        }
 
-            if (slime.x <= 0 || slime.x >= bounds.width - slime.size) {
-                slime.vx *= -1;
-                slime.x = Math.max(0, Math.min(bounds.width - slime.size, slime.x));
-            }
+        if (lowCount >= 2 && now >= pet.nextMistakeAt) {
+            pet.careMistakes += 1;
+            pet.nextMistakeAt = now + 9000;
+            showPopup("MISS");
+        }
 
-            if (slime.y <= 0 || slime.y >= bounds.height - slime.size) {
-                slime.vy *= -1;
-                slime.y = Math.max(0, Math.min(bounds.height - slime.size, slime.y));
-            }
+        if (lowCount > 0) {
+            pet.stats.health -= dt * (1.2 + lowCount * 0.6);
+        } else {
+            pet.stats.health += dt * 0.5;
+        }
 
-            slime.vx *= 0.994;
-            slime.vy *= 0.994;
+        if (pet.mess > 80) {
+            pet.stats.health -= dt * 1.3;
+            pet.stats.happiness -= dt * 0.7;
+        }
 
-            if (now < slime.alertUntil) {
-                slime.el.classList.add("is-alert");
-            } else if (!slime.el.matches(":hover")) {
-                slime.el.classList.remove("is-alert");
-            }
+        if (pet.sickness) {
+            pet.stats.health -= dt * 1.8;
+            pet.stats.energy -= dt * 0.8;
+            pet.stats.happiness -= dt * 0.55;
+        }
 
-            updateVisual(slime, now);
+        ["health", "hunger", "happiness", "hygiene", "energy"].forEach((key) => {
+            pet.stats[key] = clamp(pet.stats[key], 0, 100);
         });
+        pet.mess = clamp(pet.mess, 0, 100);
+        pet.careMistakes = clamp(pet.careMistakes, 0, 999);
+
+        updateEvolution();
+        updateBars();
+        updateStatus(now);
+        updateRoaming(dt, now, bounds);
+
+        petEl.classList.toggle("is-cast", now < pet.castUntil);
+        if (now >= pet.castUntil && now >= pet.restingUntil) {
+            petEl.classList.remove("is-cast");
+        }
+
+        const wobble = Math.sin(now * 0.006 + pet.wobbleOffset) * 0.05;
+        const faceScale = pet.facingRight ? -1 : 1;
+        petEl.style.left = `${pet.x}px`;
+        petEl.style.top = `${pet.y}px`;
+        petEl.style.transform = `scale(${(1 + wobble) * faceScale}, ${1 - wobble})`;
+
+        savePetState();
 
         rafId = requestAnimationFrame(tick);
     }
 
-    function onPointerMove(event) {
-        const rect = slimeLayer.getBoundingClientRect();
-        cursor.x = event.clientX - rect.left;
-        cursor.y = event.clientY - rect.top;
-        cursor.active = true;
-    }
-
-    function onPointerLeave() {
-        cursor.active = false;
-        cursor.x = -9999;
-        cursor.y = -9999;
-    }
-
-    slimeLayer.addEventListener("pointermove", onPointerMove);
-    slimeLayer.addEventListener("pointerleave", onPointerLeave);
-
-    const onResize = () => {
+    function onResize() {
         const bounds = getBounds();
-        slimes.forEach((slime) => {
-            slime.x = Math.max(0, Math.min(bounds.width - slime.size, slime.x));
-            slime.y = Math.max(0, Math.min(bounds.height - slime.size, slime.y));
-        });
-    };
+        const margin = 8;
+        const maxX = Math.max(margin, bounds.width - pet.size - margin);
+        const maxY = Math.max(margin, bounds.height - pet.size - margin);
+        pet.x = clamp(pet.x, margin, maxX);
+        pet.y = clamp(pet.y, margin, maxY);
+        pickRoamTarget(bounds);
+    }
+
+    loadPetState();
+    applyRoleFromStage();
+    placePet(getBounds());
+    pickRoamTarget(getBounds());
+    updateBars();
+    updateStatus(performance.now());
 
     window.addEventListener("resize", onResize);
-
     rafId = requestAnimationFrame(tick);
 
     slimeEngine = {
         stop() {
             cancelAnimationFrame(rafId);
-            slimeLayer.removeEventListener("pointermove", onPointerMove);
-            slimeLayer.removeEventListener("pointerleave", onPointerLeave);
             window.removeEventListener("resize", onResize);
+            savePetState(true);
         }
     };
 }
@@ -491,7 +915,7 @@ function fillTimeline(containerId, entries) {
 }
 
 function trimText(value, maxLength) {
-    const text = typeof value === "string" ? value.trim() : "";
+    const text = normalizeDisplayText(value);
     if (text.length <= maxLength) {
         return text;
     }
@@ -555,7 +979,9 @@ function createProfileSectionBlock(titleText, items) {
 
             const primary = document.createElement("span");
             primary.className = "profile-item-title";
-            const label = [item.period, item.title].filter(Boolean).join(" - ");
+            const label = [normalizeDisplayText(item.period), normalizeDisplayText(item.title)]
+                .filter(Boolean)
+                .join(" - ");
 
             const itemLink = normalizeUrl(item.link);
             if (itemLink) {
@@ -650,7 +1076,7 @@ function buildHomePreviews(data = {}) {
             wide: true,
             lines: publicationRecent.length > 0
                 ? publicationRecent.map((entry) => ({
-                    title: `${entry.date || "TBD"} - ${trimText(entry.title || "Publication", 120)}`,
+                    title: `${normalizeDisplayText(entry.date) || "TBD"} - ${trimText(entry.title || "Publication", 120)}`,
                     text: entry.text || "",
                     text2: entry.text2 || "",
                     link: entry.link,
@@ -663,7 +1089,7 @@ function buildHomePreviews(data = {}) {
             label: "News",
             title: data.home?.cardTitles?.news || "Latest News",
             lines: newsRecent.length > 0
-                ? newsRecent.map((entry) => `${entry.date || "Soon"} - ${trimText(entry.title || "Update", 64)}`)
+                ? newsRecent.map((entry) => `${normalizeDisplayText(entry.date) || "Soon"} - ${trimText(entry.title || "Update", 64)}`)
                 : ["Add news updates to show recent announcements."]
         }
     ];
