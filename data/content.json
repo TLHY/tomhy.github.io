@@ -1,10 +1,9 @@
 {
   "meta": {
-    "playerLabel": "Player 1",
-    "footerHint": "Press arrow keys to switch tab paks",
+    "playerLabel": "Tamer 01",
+    "footerHint": "Press arrow keys to switch Digi-Paks",
     "playground": {
-      "title": "The Field",
-      "hint": "",
+      "title": "Digital Field",
       "slimeCount": 4,
       "minSize": 30,
       "maxSize": 44,
@@ -61,10 +60,10 @@
     "researchExperienceTitle": "Research Experience",
     "researchExperience": [
       {
-        "period": "0000 - 0000",
-        "title": "Loading...",
-        "text": "No Save Data!",
-        "link": "https://your-link-here"
+        "period": "",
+        "title": "",
+        "text": "",
+        "link": ""
       }
     ],
     "honorsAwardsTitle": "Honors & Awards",

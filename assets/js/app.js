@@ -112,6 +112,9 @@ function createCard(card) {
 function createHomePreviewCard(preview) {
     const article = document.createElement("article");
     article.className = "pixel-card home-preview-card";
+    if (preview.target) {
+        article.classList.add(`home-preview-${preview.target}`);
+    }
     if (preview.wide) {
         article.classList.add("home-preview-wide");
     }
@@ -134,7 +137,15 @@ function createHomePreviewCard(preview) {
                 const titleRow = document.createElement("div");
                 titleRow.className = "home-preview-title-row";
 
+                if (line.date) {
+                    const dateText = document.createElement("span");
+                    dateText.className = "home-preview-date";
+                    appendFormattedText(dateText, line.date);
+                    titleRow.appendChild(dateText);
+                }
+
                 const titleText = document.createElement("span");
+                titleText.className = "home-preview-main-title";
                 appendFormattedText(titleText, line.title || line.text || "");
                 titleRow.appendChild(titleText);
 
@@ -368,7 +379,7 @@ function initSlimePlayground(meta = {}) {
     let lastTime = performance.now();
 
     const petEl = document.createElement("div");
-    petEl.className = "ro-char use-idle-sheet tamagotchi-pet role-healer";
+    petEl.className = "ro-char tamagotchi-pet role-healer stage-0";
     petEl.style.setProperty("--char-size", `${pet.size}px`);
 
     const shadow = document.createElement("span");
@@ -565,7 +576,9 @@ function initSlimePlayground(meta = {}) {
     function applyRoleFromStage() {
         const stage = getStageByPet();
         petEl.classList.remove("role-healer", "role-archer", "role-sword", "role-mage");
+        petEl.classList.remove("stage-0", "stage-1", "stage-2", "stage-3");
         petEl.classList.add(`role-${stage.role}`);
+        petEl.classList.add(`stage-${pet.stageIndex}`);
         nameTag.textContent = "";
     }
 
@@ -814,7 +827,6 @@ function initSlimePlayground(meta = {}) {
         if (lowCount >= 2 && now >= pet.nextMistakeAt) {
             pet.careMistakes += 1;
             pet.nextMistakeAt = now + 9000;
-            showPopup("MISS");
         }
 
         if (lowCount > 0) {
@@ -1076,9 +1088,10 @@ function buildHomePreviews(data = {}) {
             wide: true,
             lines: publicationRecent.length > 0
                 ? publicationRecent.map((entry) => ({
-                    title: `${normalizeDisplayText(entry.date) || "TBD"} - ${trimText(entry.title || "Publication", 120)}`,
-                    text: entry.text || "",
-                    text2: entry.text2 || "",
+                    date: normalizeDisplayText(entry.date) || "TBD",
+                    title: trimText(entry.title || "Publication", 120),
+                    text: trimText(normalizeDisplayText(entry.text2) || "", 90),
+                    text2: trimText(normalizeDisplayText(entry.text) || "", 140),
                     link: entry.link,
                     linkLabel: "Open publication page"
                 }))
@@ -1089,7 +1102,12 @@ function buildHomePreviews(data = {}) {
             label: "News",
             title: data.home?.cardTitles?.news || "Latest News",
             lines: newsRecent.length > 0
-                ? newsRecent.map((entry) => `${normalizeDisplayText(entry.date) || "Soon"} - ${trimText(entry.title || "Update", 64)}`)
+                ? newsRecent.map((entry) => ({
+                    date: normalizeDisplayText(entry.date) || "Soon",
+                    title: trimText(entry.title || "Update", 74),
+                    text: trimText(entry.text || "", 130),
+                    text2: ""
+                }))
                 : ["Add news updates to show recent announcements."]
         }
     ];

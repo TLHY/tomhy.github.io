@@ -1,22 +1,41 @@
+@font-face {
+    font-family: "Pixel Digivolve";
+    src: url("../../Font/pixel-digivolve-font/PixelDigivolve-mOm9.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Pixel Digivolve";
+    src: url("../../Font/pixel-digivolve-font/PixelDigivolveItalic-dV8R.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
 :root {
-    --bg-dark: #5d84b2;
-    --bg-mid: #87add6;
-    --bg-light: #bcd6ef;
-    --screen-base: #c7def5;
-    --screen-border: #345172;
-    --ink: #12263d;
-    --panel-shadow: #223955;
-    --cartridge-a: #d7c28f;
-    --cartridge-b: #b39d6a;
-    --cartridge-active-a: #a9c5e6;
-    --cartridge-active-b: #7698c2;
-    --danger-pixel: #a74f3d;
-    --text-primary: #132742;
-    --text-muted: #2c4769;
+    --bg-dark: #081833;
+    --bg-mid: #10376a;
+    --bg-light: #1a5ba4;
+    --screen-base: #d7ecff;
+    --screen-border: #1f4d88;
+    --ink: #0d2643;
+    --panel-shadow: #14345c;
+    --cartridge-a: #2a6ec4;
+    --cartridge-b: #184684;
+    --cartridge-active-a: #ffbe4e;
+    --cartridge-active-b: #d9771f;
+    --danger-pixel: #f36f2f;
+    --text-primary: #0e2a4e;
+    --text-muted: #183d67;
     --ro-sky-a: #cde7ff;
     --ro-sky-b: #eaf5ff;
     --ro-field-a: #d5e9ff;
     --ro-field-b: #bdd8f5;
+    --accent-energy: #ffd968;
+    --accent-ice: #9ed4ff;
+    --pixel-font: "Pixel Digivolve", "VT323", cursive;
 }
 
 * {
@@ -33,25 +52,22 @@ body {
     isolation: isolate;
     overflow-x: hidden;
     background:
-        radial-gradient(ellipse at 14% 16%, rgba(255, 255, 255, 0.64) 0%, rgba(255, 255, 255, 0) 26%),
-        radial-gradient(ellipse at 72% 14%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 24%),
-        radial-gradient(ellipse at 50% 102%, rgba(88, 145, 94, 0.5) 0%, rgba(88, 145, 94, 0) 52%),
-        linear-gradient(
-            180deg,
-            #b7dcff 0%,
-            #d4ebff 30%,
-            #eaf6ff 46%,
-            #cde5ff 57%,
-            #b8dca0 57%,
-            #93c37d 74%,
-            #79ad65 100%
+        radial-gradient(circle at 12% 16%, rgba(158, 212, 255, 0.36) 0%, rgba(158, 212, 255, 0) 28%),
+        radial-gradient(circle at 82% 10%, rgba(255, 217, 104, 0.24) 0%, rgba(255, 217, 104, 0) 30%),
+        linear-gradient(180deg, #0a1b3a 0%, #0c2851 44%, #0f3466 72%, #164a84 100%),
+        repeating-linear-gradient(
+            90deg,
+            rgba(138, 185, 255, 0.08) 0,
+            rgba(138, 185, 255, 0.08) 1px,
+            transparent 1px,
+            transparent 24px
         ),
         repeating-linear-gradient(
             0deg,
-            rgba(56, 110, 58, 0.1) 0,
-            rgba(56, 110, 58, 0.1) 2px,
-            transparent 2px,
-            transparent 10px
+            rgba(138, 185, 255, 0.06) 0,
+            rgba(138, 185, 255, 0.06) 1px,
+            transparent 1px,
+            transparent 24px
         );
     display: flex;
     align-items: center;
@@ -68,54 +84,19 @@ body::after {
     z-index: 0;
 }
 
-/* Distant village silhouettes along the horizon. */
 body::before {
     background:
-        /* Church silhouette (left horizon): body, tower, roof, steeple, cross */
-        linear-gradient(0deg, rgba(40, 65, 96, 0.86), rgba(40, 65, 96, 0.86)) 7.2% 61.8% / 52px 16px no-repeat,
-        linear-gradient(0deg, rgba(40, 65, 96, 0.86), rgba(40, 65, 96, 0.86)) 8.7% 58.8% / 20px 28px no-repeat,
-        linear-gradient(135deg, transparent 49.5%, rgba(40, 65, 96, 0.86) 50%) 7.8% 56.8% / 32px 18px no-repeat,
-        linear-gradient(225deg, transparent 49.5%, rgba(40, 65, 96, 0.86) 50%) 9.4% 56.8% / 32px 18px no-repeat,
-        linear-gradient(0deg, rgba(40, 65, 96, 0.86), rgba(40, 65, 96, 0.86)) 12.7% 57.6% / 8px 22px no-repeat,
-        linear-gradient(135deg, transparent 49.5%, rgba(40, 65, 96, 0.86) 50%) 12.3% 55.8% / 14px 10px no-repeat,
-        linear-gradient(225deg, transparent 49.5%, rgba(40, 65, 96, 0.86) 50%) 12.9% 55.8% / 14px 10px no-repeat,
-        linear-gradient(0deg, rgba(40, 65, 96, 0.86), rgba(40, 65, 96, 0.86)) 12.7% 54.9% / 2px 10px no-repeat,
-        linear-gradient(90deg, rgba(40, 65, 96, 0.86), rgba(40, 65, 96, 0.86)) 12.7% 55.5% / 7px 2px no-repeat,
-
-        /* Windmill silhouette (right horizon): mast + blades */
-        linear-gradient(0deg, rgba(46, 74, 108, 0.82), rgba(46, 74, 108, 0.82)) 91.8% 60.5% / 10px 28px no-repeat,
-        linear-gradient(90deg, rgba(46, 74, 108, 0.82), rgba(46, 74, 108, 0.82)) 91.8% 57.2% / 40px 5px no-repeat,
-        linear-gradient(35deg, transparent 46%, rgba(46, 74, 108, 0.82) 47% 53%, transparent 54%) 91.8% 57.2% / 40px 18px no-repeat,
-        linear-gradient(145deg, transparent 46%, rgba(46, 74, 108, 0.82) 47% 53%, transparent 54%) 91.8% 57.2% / 40px 18px no-repeat,
-
-        linear-gradient(135deg, transparent 49.5%, rgba(62, 89, 122, 0.42) 50%) 9% 57% / 54px 30px no-repeat,
-        linear-gradient(225deg, transparent 49.5%, rgba(62, 89, 122, 0.42) 50%) 13.5% 57% / 54px 30px no-repeat,
-        linear-gradient(0deg, rgba(79, 112, 151, 0.5), rgba(79, 112, 151, 0.5)) 11% 59.2% / 54px 22px no-repeat,
-
-        linear-gradient(135deg, transparent 49.5%, rgba(66, 95, 131, 0.4) 50%) 24.5% 58% / 46px 26px no-repeat,
-        linear-gradient(225deg, transparent 49.5%, rgba(66, 95, 131, 0.4) 50%) 28.2% 58% / 46px 26px no-repeat,
-        linear-gradient(0deg, rgba(89, 124, 164, 0.48), rgba(89, 124, 164, 0.48)) 26.3% 60% / 46px 20px no-repeat,
-
-        linear-gradient(135deg, transparent 49.5%, rgba(62, 89, 122, 0.42) 50%) 74% 57.6% / 60px 32px no-repeat,
-        linear-gradient(225deg, transparent 49.5%, rgba(62, 89, 122, 0.42) 50%) 79.1% 57.6% / 60px 32px no-repeat,
-        linear-gradient(0deg, rgba(79, 112, 151, 0.5), rgba(79, 112, 151, 0.5)) 76.3% 60.1% / 60px 23px no-repeat,
-
-        linear-gradient(135deg, transparent 49.5%, rgba(66, 95, 131, 0.4) 50%) 88% 58.4% / 42px 22px no-repeat,
-        linear-gradient(225deg, transparent 49.5%, rgba(66, 95, 131, 0.4) 50%) 91.1% 58.4% / 42px 22px no-repeat,
-        linear-gradient(0deg, rgba(89, 124, 164, 0.48), rgba(89, 124, 164, 0.48)) 89.6% 60% / 42px 17px no-repeat;
-    opacity: 1;
+        linear-gradient(90deg, rgba(255, 217, 104, 0.35) 0 2px, transparent 2px 100%) 0 0 / 180px 180px repeat,
+        linear-gradient(0deg, rgba(255, 217, 104, 0.24) 0 2px, transparent 2px 100%) 0 0 / 180px 180px repeat,
+        radial-gradient(circle at 0 0, rgba(255, 217, 104, 0.42) 0 2px, transparent 2px 100%) 0 0 / 180px 180px repeat;
+    opacity: 0.28;
 }
 
-/* Tiny village lights/windows to make the settlement feel alive. */
 body::after {
     background:
-        radial-gradient(circle, rgba(255, 243, 185, 0.72) 0 1px, transparent 1.2px) 8.2% 62.1% / 9px 9px repeat,
-        radial-gradient(circle, rgba(255, 243, 185, 0.56) 0 1px, transparent 1.2px) 11.8% 61.4% / 8px 8px repeat,
-        radial-gradient(circle, rgba(255, 243, 185, 0.5) 0 1px, transparent 1.2px) 26.8% 62.2% / 8px 8px repeat,
-        radial-gradient(circle, rgba(255, 243, 185, 0.5) 0 1px, transparent 1.2px) 77.2% 61.8% / 8px 8px repeat,
-        radial-gradient(circle, rgba(255, 243, 185, 0.72) 0 1px, transparent 1.2px) 91.9% 60.8% / 9px 9px repeat,
-        radial-gradient(circle, rgba(255, 243, 185, 0.56) 0 1px, transparent 1.2px) 90.2% 62.2% / 8px 8px repeat;
-    opacity: 0.82;
+        radial-gradient(circle at 20% 24%, rgba(158, 212, 255, 0.22) 0 11%, transparent 12% 100%),
+        radial-gradient(circle at 78% 70%, rgba(255, 217, 104, 0.24) 0 13%, transparent 14% 100%);
+    opacity: 0.95;
 }
 
 .console-wrap {
@@ -125,13 +106,15 @@ body::after {
 
 .console-wrap {
     width: min(1580px, 100%);
-    background: linear-gradient(180deg, #cfc9b5 0%, #afaa97 100%);
-    border: 4px solid #48463f;
+    background:
+        linear-gradient(180deg, #235ea7 0%, #1b4a88 48%, #14376d 100%),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.09) 0, rgba(255, 255, 255, 0.09) 2px, transparent 2px, transparent 10px);
+    border: 4px solid #0f2d57;
     box-shadow:
-        0 0 0 4px #777260,
-        0 0 0 8px #2f2d28,
-        0 26px 48px rgba(0, 0, 0, 0.45);
-    border-radius: 10px 10px 22px 22px;
+        0 0 0 4px #2c6bb7,
+        0 0 0 8px #0d2649,
+        0 26px 48px rgba(2, 12, 27, 0.65);
+    border-radius: 18px;
     padding: 22px;
     position: relative;
     overflow: hidden;
@@ -159,21 +142,25 @@ body::after {
 }
 
 .hero-screen {
-    background: linear-gradient(180deg, #e8f2ff 0%, var(--screen-base) 100%);
+    background:
+        linear-gradient(180deg, #f2f9ff 0%, #d6eaff 100%),
+        repeating-linear-gradient(90deg, rgba(54, 101, 160, 0.08) 0, rgba(54, 101, 160, 0.08) 2px, transparent 2px, transparent 8px);
     border: 5px solid var(--screen-border);
     box-shadow:
-        inset 0 0 0 3px #7f9fc3,
+        inset 0 0 0 3px #7ca8dc,
         inset 0 8px 0 rgba(255, 255, 255, 0.35),
-        0 8px 0 var(--panel-shadow);
+        0 8px 0 var(--panel-shadow),
+        0 0 0 1px rgba(255, 217, 104, 0.42);
     padding: 22px 20px 18px;
-    border-radius: 6px;
+    border-radius: 8px;
     animation: bootUp 900ms steps(6) both;
 }
 
 .meta-playground {
-    border: 3px solid #54749c;
+    border: 3px solid #2d5d98;
     background:
-        linear-gradient(180deg, #d9ecff 0%, #eef7ff 56%, #c9dff7 56%, #a8c5e7 100%),
+        linear-gradient(180deg, #e0efff 0%, #f4f9ff 52%, #d2e6ff 52%, #a8c9f0 100%),
+        repeating-linear-gradient(90deg, rgba(72, 117, 176, 0.13) 0, rgba(72, 117, 176, 0.13) 1px, transparent 1px, transparent 16px),
         repeating-linear-gradient(
             0deg,
             rgba(52, 94, 142, 0.14) 0,
@@ -181,8 +168,10 @@ body::after {
             transparent 2px,
             transparent 8px
         );
-    border-radius: 5px;
-    box-shadow: inset 0 0 0 2px #92b5df;
+    border-radius: 6px;
+    box-shadow:
+        inset 0 0 0 2px #92b5df,
+        inset 0 10px 0 rgba(255, 255, 255, 0.42);
     min-height: 220px;
     position: relative;
     overflow: hidden;
@@ -192,14 +181,14 @@ body::after {
     display: flex;
     justify-content: space-between;
     gap: 10px;
-    font-family: "Press Start 2P", cursive;
-    font-size: 9px;
+    font-family: var(--pixel-font);
+    font-size: 11px;
     text-transform: uppercase;
     padding: 10px;
-    border-bottom: 2px dashed #6f8fb2;
+    border-bottom: 2px dashed #4f7db6;
     position: relative;
     z-index: 2;
-    background: rgba(218, 232, 250, 0.76);
+    background: rgba(217, 233, 252, 0.86);
 }
 
 .slime-layer {
@@ -210,7 +199,7 @@ body::after {
 .ro-char {
     position: absolute;
     width: var(--char-size, 38px);
-    height: calc(var(--char-size, 38px) * 1.24);
+    height: calc(var(--char-size, 38px) * 1.08);
     transform-origin: center bottom;
     transition: transform 110ms steps(2), filter 110ms linear;
     pointer-events: auto;
@@ -256,97 +245,83 @@ body::after {
 .ro-idle-sheet {
     position: absolute;
     left: 50%;
-    bottom: -10%;
-    width: 128%;
-    height: 133%;
+    bottom: -3%;
+    width: 132%;
+    height: 114%;
     transform: translateX(-50%);
-    background-image: url("../../images/idle-removebg-preview.png");
-    background-repeat: no-repeat;
-    background-size: 200% 200%;
-    background-position: 0% 0%;
     image-rendering: auto;
     filter: drop-shadow(0 2px 0 rgba(26, 42, 65, 0.34));
-    display: none;
+    display: block;
+    background-image: url("../../images/evol1-removebg-preview.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: 50% 100%;
 }
 
 .ro-fight-sheet {
     position: absolute;
     left: 50%;
-    bottom: -10%;
-    width: 128%;
-    height: 133%;
+    bottom: -4%;
+    width: 132%;
+    height: 98%;
     transform: translateX(-50%);
-    background-image: url("../../images/fight-removebg-preview.png");
-    background-repeat: no-repeat;
-    background-size: 408px 612px;
-    background-position: 0 0;
-    --fight-frame0-x: 0px;
-    --fight-frame1-x: -204px;
-    --fight-row-y: 0px;
     image-rendering: auto;
-    filter: drop-shadow(0 2px 0 rgba(26, 42, 65, 0.34));
-    display: none;
-}
-
-.ro-char.use-idle-sheet .ro-idle-sheet {
+    filter: drop-shadow(0 1px 0 rgba(26, 42, 65, 0.2));
     display: block;
+    opacity: 0;
+    pointer-events: none;
 }
 
-.ro-char.use-idle-sheet.is-cast .ro-idle-sheet {
+.ro-idle-sheet::before {
     display: none;
 }
 
-.ro-char.use-idle-sheet.is-cast .ro-fight-sheet {
-    display: block;
-}
-
-.ro-char.use-idle-sheet .ro-head,
-.ro-char.use-idle-sheet .ro-hair,
-.ro-char.use-idle-sheet .ro-face,
-.ro-char.use-idle-sheet .ro-torso,
-.ro-char.use-idle-sheet .ro-weapon,
-.ro-char.use-idle-sheet .ro-shield {
+.ro-idle-sheet::after {
     display: none;
 }
 
-.ro-char.use-idle-sheet.role-sword .ro-idle-sheet {
-    background-position: 0% 0%;
+.ro-char.stage-0 .ro-idle-sheet {
+    width: 106%;
+    height: 98%;
+    background-image: url("../../images/evol1-removebg-preview.png");
 }
 
-.ro-char.use-idle-sheet.role-healer .ro-idle-sheet {
-    background-position: 100% 0%;
+.ro-char.stage-1 .ro-idle-sheet {
+    width: 118%;
+    height: 106%;
+    background-image: url("../../images/evol2-removebg-preview.png");
 }
 
-.ro-char.use-idle-sheet.role-archer .ro-idle-sheet {
-    background-position: 0% 100%;
-    bottom: -14%;
+.ro-char.stage-2 .ro-idle-sheet {
+    width: 138%;
+    height: 118%;
+    background-image: url("../../images/evol3-removebg-preview.png");
 }
 
-.ro-char.use-idle-sheet.role-mage .ro-idle-sheet {
-    background-position: 100% 100%;
+.ro-char.stage-3 .ro-idle-sheet {
+    width: 158%;
+    height: 130%;
+    background-image: url("../../images/evol4-removebg-preview.png");
 }
 
-.ro-char.use-idle-sheet.role-sword .ro-fight-sheet {
-    --fight-row-y: 0px;
-    --fight-frame0-x: -1px;
-    --fight-frame1-x: -205px;
-    background-position: var(--fight-frame0-x) var(--fight-row-y);
+.ro-char.is-cast .ro-idle-sheet {
+    filter: brightness(1.08) drop-shadow(0 0 6px rgba(125, 182, 255, 0.75));
 }
 
-.ro-char.use-idle-sheet.role-healer .ro-fight-sheet {
-    --fight-row-y: -153px;
-    background-position: var(--fight-frame0-x) var(--fight-row-y);
+.ro-char.is-cast .ro-fight-sheet {
+    opacity: 0.95;
+    animation: monster-cast-pulse 180ms steps(2) infinite;
 }
 
-.ro-char.use-idle-sheet.role-archer .ro-fight-sheet {
-    --fight-row-y: -306px;
-    background-position: var(--fight-frame0-x) var(--fight-row-y);
-    bottom: -14%;
-}
-
-.ro-char.use-idle-sheet.role-mage .ro-fight-sheet {
-    --fight-row-y: -459px;
-    background-position: var(--fight-frame0-x) var(--fight-row-y);
+@keyframes monster-cast-pulse {
+    0% {
+        transform: translateX(-50%) scale(1);
+        filter: drop-shadow(0 1px 0 rgba(26, 42, 65, 0.2));
+    }
+    100% {
+        transform: translateX(-50%) scale(1.03);
+        filter: drop-shadow(0 0 7px rgba(120, 173, 255, 0.75));
+    }
 }
 
 .tamagotchi-pet {
@@ -361,8 +336,8 @@ body::after {
     border: 1px solid #4d6f98;
     background: linear-gradient(180deg, #d8e9ff 0%, #9dbfe3 100%);
     color: #18395f;
-    font-family: "Press Start 2P", cursive;
-    font-size: 7px;
+    font-family: var(--pixel-font);
+    font-size: 8px;
     padding: 5px 8px;
     cursor: pointer;
     box-shadow: 0 1px 0 #44648b;
@@ -402,8 +377,8 @@ body::after {
 }
 
 .tama-panel-title {
-    font-family: "Press Start 2P", cursive;
-    font-size: 8px;
+    font-family: var(--pixel-font);
+    font-size: 9px;
     color: #19304e;
 }
 
@@ -411,8 +386,8 @@ body::after {
     border: 1px solid #4d6f98;
     background: linear-gradient(180deg, #f7dfe2 0%, #dca3ad 100%);
     color: #5f1c29;
-    font-family: "Press Start 2P", cursive;
-    font-size: 7px;
+    font-family: var(--pixel-font);
+    font-size: 8px;
     padding: 2px 5px;
     cursor: pointer;
 }
@@ -427,8 +402,8 @@ body::after {
 
 .tama-status {
     grid-area: status;
-    font-family: "Press Start 2P", cursive;
-    font-size: 8px;
+    font-family: var(--pixel-font);
+    font-size: 9px;
     color: #19304e;
     margin-bottom: 0;
     line-height: 1.4;
@@ -451,8 +426,8 @@ body::after {
 }
 
 .tama-label {
-    font-family: "Press Start 2P", cursive;
-    font-size: 7px;
+    font-family: var(--pixel-font);
+    font-size: 8px;
     color: #27486f;
 }
 
@@ -482,8 +457,8 @@ body::after {
     border: 1px solid #4d6f98;
     background: linear-gradient(180deg, #d8e9ff 0%, #9dbfe3 100%);
     color: #18395f;
-    font-family: "Press Start 2P", cursive;
-    font-size: 7px;
+    font-family: var(--pixel-font);
+    font-size: 8px;
     padding: 4px 2px;
     cursor: pointer;
     box-shadow: 0 1px 0 #44648b;
@@ -684,8 +659,8 @@ body::after {
     bottom: calc(100% + 2px);
     left: 50%;
     transform: translateX(-50%);
-    font-family: "Press Start 2P", cursive;
-    font-size: 7px;
+    font-family: var(--pixel-font);
+    font-size: 8px;
     color: #1a2d18;
     background: rgba(244, 251, 227, 0.86);
     border: 1px solid rgba(58, 85, 45, 0.6);
@@ -698,8 +673,8 @@ body::after {
     top: -10px;
     left: 50%;
     transform: translateX(-50%);
-    font-family: "Press Start 2P", cursive;
-    font-size: 10px;
+    font-family: var(--pixel-font);
+    font-size: 11px;
     color: #203014;
     opacity: 0;
     transition: opacity 120ms linear;
@@ -835,8 +810,8 @@ body::after {
     bottom: calc(100% + 2px);
     left: 50%;
     transform: translateX(-50%);
-    font-family: "Press Start 2P", cursive;
-    font-size: 7px;
+    font-family: var(--pixel-font);
+    font-size: 8px;
     color: #4e2f4f;
     background: rgba(248, 252, 230, 0.9);
     border: 1px solid rgba(58, 85, 45, 0.64);
@@ -871,8 +846,8 @@ body::after {
 
 .ro-damage {
     position: absolute;
-    font-family: "Press Start 2P", cursive;
-    font-size: 9px;
+    font-family: var(--pixel-font);
+    font-size: 10px;
     color: #7f1f14;
     text-shadow: 1px 1px 0 rgba(255, 240, 220, 0.85);
     pointer-events: none;
@@ -882,25 +857,25 @@ body::after {
 .boot-row {
     display: flex;
     justify-content: space-between;
-    font-family: "Press Start 2P", cursive;
-    font-size: 10px;
+    font-family: var(--pixel-font);
+    font-size: 12px;
     letter-spacing: 0.8px;
     margin-bottom: 12px;
     text-transform: uppercase;
 }
 
 .pixel-title {
-    font-family: "Press Start 2P", cursive;
+    font-family: var(--pixel-font);
     line-height: 1.6;
     margin: 0;
-    font-size: clamp(15px, 2.2vw, 24px);
+    font-size: clamp(17px, 2.4vw, 26px);
     text-transform: uppercase;
     text-shadow: 2px 2px 0 #6f8456;
 }
 
 .hero-note {
     margin: 14px 0 0;
-    font-size: clamp(22px, 3.1vw, 30px);
+    font-size: clamp(24px, 3.3vw, 32px);
     line-height: 1.1;
 }
 
@@ -946,17 +921,17 @@ body::after {
 }
 
 .profile-dock {
-    background: #e2edf9;
-    border: 4px solid #365479;
+    background: linear-gradient(180deg, #e3f1ff 0%, #ccdef5 100%);
+    border: 4px solid #2b5c96;
     box-shadow:
-        inset 0 0 0 3px #9ebce0,
-        0 8px 0 #27415f;
-    border-radius: 4px;
+        inset 0 0 0 3px #96bbe3,
+        0 8px 0 #1e4675;
+    border-radius: 8px;
     padding: 10px;
 }
 
 .panel-head-small {
-    font-size: 11px;
+    font-size: 13px;
     margin-bottom: 8px;
 }
 
@@ -971,7 +946,7 @@ body::after {
 }
 
 .dock-chip-row .badge {
-    font-size: 11px;
+    font-size: 13px;
     padding: 6px 10px;
 }
 
@@ -987,13 +962,13 @@ body::after {
 }
 
 .dock-body .pixel-card h3 {
-    font-size: 11px;
+    font-size: 13px;
     line-height: 1.5;
 }
 
 .dock-body .pixel-card p,
 .dock-body .pixel-card li {
-    font-size: 17px;
+    font-size: 19px;
     line-height: 1.6;
 }
 
@@ -1003,13 +978,13 @@ body::after {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #4b698f;
-    background: linear-gradient(180deg, #d1e5ff 0%, #94b7df 100%);
-    color: #14273f;
-    font-family: "Press Start 2P", cursive;
-    font-size: 11px;
+    border: 2px solid #2b5b95;
+    background: linear-gradient(180deg, #fff0c8 0%, #ffc768 100%);
+    color: #643707;
+    font-family: var(--pixel-font);
+    font-size: 13px;
     text-decoration: none;
-    box-shadow: 0 2px 0 #43648b;
+    box-shadow: 0 2px 0 #a85d12;
 }
 
 .social-link:hover,
@@ -1020,11 +995,11 @@ body::after {
 }
 
 .pak-tab {
-    border: 3px solid #5f5640;
+    border: 3px solid #1d4a81;
     background: linear-gradient(180deg, var(--cartridge-a), var(--cartridge-b));
-    font-family: "Press Start 2P", cursive;
-    font-size: 11px;
-    color: #2d2414;
+    font-family: var(--pixel-font);
+    font-size: 13px;
+    color: #ebf5ff;
     padding: 16px 10px 12px;
     min-height: 84px;
     cursor: pointer;
@@ -1032,8 +1007,8 @@ body::after {
     text-transform: uppercase;
     transition: transform 130ms steps(2), filter 130ms linear;
     box-shadow:
-        inset 0 3px 0 rgba(255, 255, 255, 0.35),
-        0 4px 0 #75694d;
+        inset 0 3px 0 rgba(255, 255, 255, 0.2),
+        0 4px 0 #12305a;
     clip-path: polygon(0 0, 100% 0, 100% 84%, 86% 84%, 86% 100%, 14% 100%, 14% 84%, 0 84%);
 }
 
@@ -1046,12 +1021,12 @@ body::after {
     height: 6px;
     background: repeating-linear-gradient(
         90deg,
-        #8e805a 0,
-        #8e805a 8px,
-        #a39470 8px,
-        #a39470 12px
+        #6fb2ff 0,
+        #6fb2ff 8px,
+        #9ad0ff 8px,
+        #9ad0ff 12px
     );
-    opacity: 0.8;
+    opacity: 0.85;
 }
 
 .pak-tab:hover,
@@ -1064,19 +1039,19 @@ body::after {
 .pak-tab.active {
     background: linear-gradient(180deg, var(--cartridge-active-a), var(--cartridge-active-b));
     box-shadow:
-        inset 0 3px 0 rgba(255, 255, 255, 0.28),
-        0 2px 0 #4f6f95;
-    color: #132742;
+        inset 0 3px 0 rgba(255, 255, 255, 0.32),
+        0 2px 0 #8a4d12;
+    color: #4f2804;
     transform: translateY(2px);
 }
 
 .panel {
-    background: #e8f1fb;
-    border: 4px solid #365479;
+    background: linear-gradient(180deg, #eaf4ff 0%, #d5e8fb 100%);
+    border: 4px solid #2b5a93;
     box-shadow:
-        inset 0 0 0 3px #a8c3e4,
-        0 8px 0 #27415f;
-    border-radius: 4px;
+        inset 0 0 0 3px #a6c5e7,
+        0 8px 0 #1e4675;
+    border-radius: 8px;
     min-height: 520px;
     padding: 18px;
     display: none;
@@ -1102,19 +1077,27 @@ body::after {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    border-bottom: 3px dashed #6f8fb2;
+    border-bottom: 3px dashed #4f7eb7;
     padding-bottom: 10px;
     margin-bottom: 14px;
-    font-family: "Press Start 2P", cursive;
-    font-size: 11px;
+    font-family: var(--pixel-font);
+    font-size: 13px;
+    letter-spacing: 0.6px;
+    color: #173f6d;
     text-transform: uppercase;
 }
 
+.panel-head > span:first-child {
+    padding-bottom: 2px;
+    border-bottom: 2px solid rgba(35, 86, 138, 0.34);
+}
+
 .badge {
-    font-size: 10px;
-    padding: 4px 6px;
-    border: 2px solid #49658a;
-    background: #c7daf0;
+    font-size: 12px;
+    padding: 5px 7px;
+    border: 2px solid #29578f;
+    background: linear-gradient(180deg, #fff3cf 0%, #ffd381 100%);
+    color: #5d3409;
 }
 
 .grid {
@@ -1125,14 +1108,18 @@ body::after {
 
 .profile-sections {
     display: grid;
-    gap: 12px;
+    gap: 14px;
+}
+
+.profile-tab-block {
+    padding: 14px;
 }
 
 .profile-tab-block ul {
     margin: 0;
     padding-left: 22px;
     display: grid;
-    gap: 6px;
+    gap: 8px;
 }
 
 .profile-item-title {
@@ -1158,8 +1145,9 @@ body::after {
 
 .profile-item-note {
     display: block;
-    opacity: 0.9;
-    font-size: 16px;
+    opacity: 1;
+    font-size: 18px;
+    color: #305783;
 }
 
 .profile-empty {
@@ -1167,24 +1155,31 @@ body::after {
 }
 
 .pixel-card {
-    border: 3px solid #52739c;
-    background: #dce8f7;
-    box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.4);
-    padding: 12px;
+    border: 3px solid #4d78a9;
+    background:
+        linear-gradient(180deg, #eef6ff 0%, #d8e9fb 100%),
+        repeating-linear-gradient(90deg, rgba(89, 133, 185, 0.06) 0, rgba(89, 133, 185, 0.06) 1px, transparent 1px, transparent 7px);
+    box-shadow:
+        inset 0 3px 0 rgba(255, 255, 255, 0.5),
+        0 2px 0 rgba(44, 85, 132, 0.3);
+    padding: 14px;
 }
 
 .pixel-card h3 {
-    margin: 0 0 8px;
-    font-family: "Press Start 2P", cursive;
-    font-size: 10px;
-    line-height: 1.4;
+    margin: 0 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(52, 99, 151, 0.35);
+    font-family: var(--pixel-font);
+    font-size: 13px;
+    line-height: 1.45;
+    color: #143c67;
 }
 
 .pixel-card p,
 .pixel-card li {
     margin: 0;
-    font-size: 16px;
-    line-height: 1.6;
+    font-size: 19px;
+    line-height: 1.65;
     color: var(--text-muted);
 }
 
@@ -1194,10 +1189,10 @@ body::after {
 }
 
 .pixel-card ul li {
-    background: #ffffff;
-    border: 1px solid #a9bfd8;
+    background: #f9fcff;
+    border: 1px solid #a4bfdc;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
-    padding: 4px 7px;
+    padding: 6px 8px;
 }
 
 .pixel-card strong,
@@ -1211,10 +1206,10 @@ body::after {
     height: 100%;
     object-fit: contain;
     object-position: center;
-    border: 2px solid #4f7198;
+    border: 2px solid #3f689b;
     box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.25);
     image-rendering: pixelated;
-    background: #c7dbf2;
+    background: #d7e8fb;
 }
 
 .card-image {
@@ -1258,15 +1253,15 @@ body::after {
 .publication-content {
     display: grid;
     align-content: start;
-    gap: 5px;
+    gap: 8px;
 }
 
 .entry-secondary {
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    font-size: 15px;
-    line-height: 1.5;
+    font-size: 18px;
+    line-height: 1.6;
     letter-spacing: 0;
-    opacity: 0.95;
+    opacity: 1;
     color: var(--text-muted);
 }
 
@@ -1278,8 +1273,8 @@ body::after {
 
 .publication-content p {
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    font-size: 15px;
-    line-height: 1.55;
+    font-size: 18px;
+    line-height: 1.65;
     letter-spacing: 0;
     color: var(--text-muted);
 }
@@ -1308,21 +1303,72 @@ body::after {
 }
 
 .home-preview-title-row {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 8px;
+    row-gap: 4px;
+    color: #133e6d;
+}
+
+.home-preview-date {
+    display: inline-block;
+    min-width: 0;
+    width: 90px;
+    font-family: var(--pixel-font);
+    font-size: 11px;
+    color: #274f7e;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.home-preview-main-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.45;
 }
 
 .home-preview-detail {
     display: block;
-    opacity: 0.92;
-    font-size: 16px;
-    line-height: 1.45;
+    opacity: 1;
+    font-size: 18px;
+    line-height: 1.55;
+    color: #2a527f;
 }
 
 .home-preview-card {
     display: grid;
     gap: 10px;
+}
+
+.home-preview-card.home-preview-publications h3,
+.home-preview-card.home-preview-news h3 {
+    border-bottom: 2px solid rgba(45, 94, 146, 0.42);
+}
+
+.home-preview-card.home-preview-publications ul,
+.home-preview-card.home-preview-news ul {
+    display: grid;
+    gap: 8px;
+}
+
+.home-preview-card.home-preview-publications li,
+.home-preview-card.home-preview-news li {
+    border-left: 4px solid #4f79ad;
+    background: linear-gradient(180deg, #f7fbff 0%, #e6f0fb 100%);
+    padding: 8px 10px;
+}
+
+.home-preview-card.home-preview-publications .home-preview-title-row,
+.home-preview-card.home-preview-news .home-preview-title-row {
+    width: 100%;
+    padding-bottom: 6px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid rgba(60, 105, 154, 0.42);
+}
+
+.home-preview-card.home-preview-news li {
+    border-left-color: #e0942c;
 }
 
 .home-preview-card.home-preview-wide {
@@ -1331,15 +1377,15 @@ body::after {
 
 .preview-jump {
     justify-self: start;
-    border: 2px solid #4b698f;
-    background: linear-gradient(180deg, #d1e5ff 0%, #94b7df 100%);
-    color: #16304f;
-    font-family: "Press Start 2P", cursive;
-    font-size: 8px;
+    border: 2px solid #235083;
+    background: linear-gradient(180deg, #ffe7a9 0%, #ffb24f 100%);
+    color: #64370b;
+    font-family: var(--pixel-font);
+    font-size: 10px;
     text-transform: uppercase;
     padding: 7px 10px;
     cursor: pointer;
-    box-shadow: 0 2px 0 #43648b;
+    box-shadow: 0 2px 0 #a25f13;
 }
 
 .preview-jump:hover,
@@ -1356,24 +1402,28 @@ body::after {
 
 .timeline-entry {
     display: grid;
-    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-columns: 108px minmax(0, 1fr);
     gap: 10px;
     align-items: start;
-    border: 2px solid #55749b;
-    background: #d9e8f8;
-    padding: 8px;
+    border: 2px solid #4a73a5;
+    background: linear-gradient(180deg, #e9f3ff 0%, #d4e7fb 100%);
+    padding: 10px;
     overflow: hidden;
     isolation: isolate;
 }
 
 .timeline-entry time {
     display: block;
-    font-family: "Press Start 2P", cursive;
-    font-size: 10px;
+    font-family: var(--pixel-font);
+    font-size: 12px;
     color: #37537a;
     white-space: nowrap;
     position: relative;
     z-index: 2;
+    align-self: start;
+    padding: 5px 6px;
+    border: 2px solid #6687b3;
+    background: linear-gradient(180deg, #f2f8ff 0%, #dceafb 100%);
 }
 
 .timeline-entry .publication-card,
@@ -1392,17 +1442,53 @@ body::after {
     overflow-wrap: anywhere;
 }
 
+#publications .timeline-entry,
+#news .timeline-entry {
+    row-gap: 12px;
+    padding: 12px;
+}
+
+#publications .timeline-entry time,
+#news .timeline-entry time {
+    font-size: 12px;
+    letter-spacing: 0.3px;
+    text-align: left;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+}
+
+#publications .publication-content h3,
+#news .publication-content h3 {
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(58, 103, 150, 0.36);
+    margin-bottom: 10px;
+}
+
+#publications .publication-content p,
+#news .publication-content p,
+#news .entry-secondary {
+    color: #20466f;
+}
+
+#news .publication-card {
+    background: linear-gradient(180deg, #f5f9ff 0%, #e2eefb 100%);
+}
+
 .entry-link-icon {
     display: inline-block;
     width: 18px;
     height: 18px;
     margin-left: 8px;
     vertical-align: middle;
-    border: 2px solid #4b698f;
+    border: 2px solid #2f5d93;
     background:
-        linear-gradient(180deg, #e2efff 0%, #a6c2e5 100%),
+        linear-gradient(180deg, #fff0c4 0%, #ffc977 100%),
         repeating-linear-gradient(90deg, transparent 0, transparent 2px, rgba(0, 0, 0, 0.06) 2px, rgba(0, 0, 0, 0.06) 3px);
-    box-shadow: 0 2px 0 #43648b;
+    box-shadow: 0 2px 0 #a76318;
     position: relative;
 }
 
@@ -1410,7 +1496,7 @@ body::after {
 .entry-link-icon::after {
     content: "";
     position: absolute;
-    background: #233c5f;
+    background: #6d3d0a;
 }
 
 .entry-link-icon::before {
@@ -1436,13 +1522,14 @@ body::after {
 
 .footer-line {
     margin-top: 18px;
-    font-family: "Press Start 2P", cursive;
-    font-size: 10px;
+    font-family: var(--pixel-font);
+    font-size: 12px;
     text-transform: uppercase;
     display: flex;
     justify-content: space-between;
     gap: 8px;
-    border-top: 2px solid #6a89af;
+    border-top: 2px solid #4f79ad;
+    color: #d6eaff;
     padding-top: 10px;
 }
 
@@ -1458,9 +1545,10 @@ body::after {
 }
 
 .loading {
-    font-family: "Press Start 2P", cursive;
-    font-size: 11px;
+    font-family: var(--pixel-font);
+    font-size: 13px;
     padding: 6px 0;
+    color: #214a7c;
 }
 
 @keyframes slimeBop {
@@ -1696,7 +1784,7 @@ body::after {
     }
 
     .boot-row {
-        font-size: 8px;
+        font-size: 10px;
     }
 
     .meta-playground {
@@ -1721,13 +1809,13 @@ body::after {
     }
 
     .meta-hud {
-        font-size: 8px;
+        font-size: 10px;
         padding: 8px;
     }
 
     .pak-tab {
         min-height: 72px;
-        font-size: 9px;
+        font-size: 11px;
         padding: 14px 8px 10px;
     }
 
@@ -1749,3 +1837,5 @@ body::after {
         gap: 4px;
     }
 }
+
+
