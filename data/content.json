@@ -1,28 +1,10 @@
 {
   "meta": {
-    "playerLabel": "Tamer 01",
-    "footerHint": "Press arrow keys to switch Digi-Paks",
+    "playerLabel": "Lab 01",
+    "footerHint": "Press arrow keys to switch sections",
     "playground": {
-      "title": "Digital Field",
-      "slimeCount": 4,
-      "minSize": 30,
-      "maxSize": 44,
-      "speed": 44,
-      "reactionRadius": 95,
-      "colors": [
-        "#6f8fca",
-        "#8d78c9",
-        "#c78258",
-        "#4d9c88",
-        "#9a86c7",
-        "#5f9bc0"
-      ],
-      "names": [
-        "Sword",
-        "Mage",
-        "Healer",
-        "Archer"
-      ]
+      "title": "Haptic Workshop",
+      "hint": "Match the sensation"
     }
   },
   "profile": {
@@ -58,14 +40,7 @@
     }
     ],
     "researchExperienceTitle": "Research Experience",
-    "researchExperience": [
-      {
-        "period": "",
-        "title": "",
-        "text": "",
-        "link": ""
-      }
-    ],
+    "researchExperience": [],
     "honorsAwardsTitle": "Honors & Awards",
     "honorsAwards": [
       {
@@ -96,6 +71,13 @@
     "badge": "Checkpoint",
     "entries": [
       {
+        "date": "2026.10",
+        "title": "Thermal Crossing: Palm-Free Thermal Rendering with Thermal Illusions",
+        "text": "Authors: **Hyung Il Yi**, Hyung Wook Yi, Sang Ho Yoon",
+        "text2": "Conference: ACM ISWC 2026",
+        "link": "",
+        "image": ""
+      },{
         "date": "2025.10",
         "title": "InvisiBow: Finger-Held Device for Bimanual Haptic Illusions during Virtual Archery",
         "text": "Authors: **Hyung Il Yi^**, Kun-Woo Song^, Nihar Sabnis, Andrea Bianchi, Sang Ho Yoon",

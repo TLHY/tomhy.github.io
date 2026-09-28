@@ -1838,4 +1838,703 @@ body::after {
     }
 }
 
+/* Monochrome handheld theme */
+:root {
+    --bg-dark: #111111;
+    --bg-mid: #333333;
+    --bg-light: #777777;
+    --screen-base: #ffffff;
+    --screen-border: #111111;
+    --ink: #111111;
+    --panel-shadow: #111111;
+    --cartridge-a: #ffffff;
+    --cartridge-b: #d9d9d9;
+    --cartridge-active-a: #111111;
+    --cartridge-active-b: #111111;
+    --danger-pixel: #111111;
+    --text-primary: #111111;
+    --text-muted: #333333;
+    --ro-sky-a: #ffffff;
+    --ro-sky-b: #eeeeee;
+    --ro-field-a: #d9d9d9;
+    --ro-field-b: #b8b8b8;
+    --accent-energy: #111111;
+    --accent-ice: #777777;
+}
+
+body {
+    background-color: #d9d9d9;
+    background-image:
+        linear-gradient(45deg, #c8c8c8 25%, transparent 25%),
+        linear-gradient(-45deg, #c8c8c8 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #c8c8c8 75%),
+        linear-gradient(-45deg, transparent 75%, #c8c8c8 75%);
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    background-size: 16px 16px;
+}
+
+body::before,
+body::after,
+.console-wrap::before,
+.console-wrap::after {
+    display: none;
+}
+
+.console-wrap {
+    background: #f4f4f4;
+    border-color: #111111;
+    border-radius: 4px;
+    box-shadow:
+        0 0 0 4px #ffffff,
+        0 0 0 8px #111111,
+        12px 12px 0 rgba(17, 17, 17, 0.28);
+}
+
+.hero-screen,
+.profile-dock,
+.panel {
+    background: #ffffff;
+    border-color: #111111;
+    border-radius: 2px;
+    box-shadow:
+        inset 0 0 0 3px #b8b8b8,
+        6px 6px 0 #111111;
+}
+
+.meta-playground {
+    border-color: #111111;
+    border-radius: 0;
+    background:
+        linear-gradient(180deg, #ffffff 0 52%, #d9d9d9 52% 100%),
+        repeating-linear-gradient(90deg, transparent 0 15px, rgba(17, 17, 17, 0.12) 15px 16px);
+    box-shadow: inset 0 0 0 2px #777777;
+}
+
+.meta-hud {
+    color: #111111;
+    border-color: #111111;
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.ro-hp,
+.tama-bar,
+.ro-dummy-hp {
+    border-color: #111111;
+    background: #ffffff;
+}
+
+.ro-hp-fill,
+.tama-fill,
+.ro-dummy-hp-fill {
+    background: #111111;
+}
+
+.tama-status-trigger,
+.tama-close,
+.tama-btn,
+.social-link,
+.preview-jump {
+    border-color: #111111;
+    background: #ffffff;
+    color: #111111;
+    box-shadow: 2px 2px 0 #111111;
+}
+
+.tama-panel {
+    border-color: #111111;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: inset 0 0 0 2px #b8b8b8;
+}
+
+.tama-panel-title,
+.tama-status,
+.tama-label {
+    color: #111111;
+}
+
+.pak-tab {
+    border-color: #111111;
+    background: #ffffff;
+    color: #111111;
+    box-shadow:
+        inset 0 3px 0 #d9d9d9,
+        0 4px 0 #111111;
+}
+
+.pak-tab::before {
+    background: repeating-linear-gradient(90deg, #111111 0 8px, #777777 8px 12px);
+}
+
+.pak-tab.active {
+    background: #111111;
+    color: #ffffff;
+    box-shadow: 0 2px 0 #777777;
+}
+
+.panel-head {
+    border-color: #111111;
+    color: #111111;
+}
+
+.panel-head > span:first-child,
+.pixel-card h3,
+.home-preview-card.home-preview-publications h3,
+.home-preview-card.home-preview-news h3,
+#publications .publication-content h3,
+#news .publication-content h3 {
+    border-color: #777777;
+    color: #111111;
+}
+
+.badge {
+    border-color: #111111;
+    background: #111111;
+    color: #ffffff;
+}
+
+.pixel-card,
+.timeline-entry,
+#news .publication-card {
+    border-color: #111111;
+    background: #eeeeee;
+    box-shadow:
+        inset 0 3px 0 #ffffff,
+        3px 3px 0 #777777;
+}
+
+.pixel-card ul li,
+.home-preview-card.home-preview-publications li,
+.home-preview-card.home-preview-news li {
+    border-color: #777777;
+    background: #ffffff;
+    box-shadow: none;
+}
+
+.home-preview-card.home-preview-publications li,
+.home-preview-card.home-preview-news li {
+    border-left-color: #111111;
+}
+
+.profile-item-link,
+.profile-item-link:hover,
+.profile-item-link:focus-visible,
+.profile-item-note,
+.publication-title-link,
+.publication-title-link:hover,
+.publication-title-link:focus-visible,
+.home-preview-title-row,
+.home-preview-date,
+.home-preview-detail,
+#publications .publication-content p,
+#news .publication-content p,
+#news .entry-secondary,
+.loading {
+    color: #111111;
+}
+
+.content-image,
+.publication-thumb-frame {
+    border-color: #111111;
+    background: #d9d9d9;
+    box-shadow: none;
+}
+
+.timeline-entry time {
+    border-color: #111111;
+    background: #ffffff;
+    color: #111111;
+}
+
+.entry-link-icon {
+    border-color: #111111;
+    background: #ffffff;
+    box-shadow: 2px 2px 0 #111111;
+}
+
+.entry-link-icon::before,
+.entry-link-icon::after {
+    background: #111111;
+}
+
+.footer-line {
+    border-color: #111111;
+    color: #111111;
+}
+
+.led {
+    background: #111111;
+    border-color: #111111;
+    box-shadow: none;
+}
+
+/* Haptic Workshop Tycoon */
+.meta-playground {
+    min-height: 650px;
+}
+
+.slime-layer.haptic-layer {
+    --haptic-success: #b93426;
+    --haptic-success-soft: #f3d6d1;
+    position: relative;
+    inset: auto;
+    min-height: 608px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+        "score"
+        "order"
+        "stage"
+        "station";
+    gap: 8px;
+    align-content: start;
+    background:
+        linear-gradient(rgba(17, 17, 17, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(17, 17, 17, 0.05) 1px, transparent 1px);
+    background-size: 8px 8px;
+}
+
+.haptic-scoreboard {
+    grid-area: score;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 2px solid #111111;
+    background: #111111;
+    color: #ffffff;
+    font-family: var(--pixel-font);
+    font-size: 9px;
+    text-align: center;
+}
+
+.haptic-scoreboard span {
+    padding: 7px 4px;
+    white-space: nowrap;
+}
+
+.haptic-scoreboard span + span {
+    border-left: 1px solid #ffffff;
+}
+
+.haptic-order {
+    grid-area: order;
+    min-width: 0;
+    border: 2px solid #111111;
+    background: #ffffff;
+    padding: 9px;
+    box-shadow: 3px 3px 0 #777777;
+    display: grid;
+    align-content: start;
+    gap: 7px;
+}
+
+.haptic-order-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+    padding-bottom: 6px;
+    border-bottom: 2px dashed #777777;
+    font-family: var(--pixel-font);
+    font-size: 8px;
+}
+
+.haptic-timer {
+    min-width: 45px;
+    text-align: right;
+}
+
+.haptic-timer.is-urgent {
+    animation: haptic-alert 500ms steps(2) infinite;
+}
+
+.haptic-order-name {
+    font-family: var(--pixel-font);
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.haptic-order-request {
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.haptic-stage {
+    grid-area: stage;
+    min-width: 0;
+    border: 2px solid #111111;
+    background: #d9d9d9;
+    padding: 13px 16px 8px;
+    display: grid;
+    align-content: center;
+    gap: 8px;
+}
+
+.haptic-arm {
+    height: 54px;
+    position: relative;
+    border: 3px solid #111111;
+    background: #ffffff;
+    clip-path: polygon(4% 14%, 96% 14%, 100% 50%, 96% 86%, 4% 86%, 0 50%);
+}
+
+.haptic-arm::before {
+    content: "";
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    top: 50%;
+    border-top: 2px dashed #777777;
+}
+
+.haptic-actuator {
+    position: absolute;
+    z-index: 2;
+    top: 7px;
+    width: 24px;
+    height: 34px;
+    border: 2px solid #111111;
+    background: #ffffff;
+    color: #ffffff;
+    font-family: var(--pixel-font);
+    font-size: 8px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+}
+
+.haptic-actuator::before {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: var(--power, 50%);
+    background: #111111;
+}
+
+.haptic-actuator-left {
+    left: 8%;
+}
+
+.haptic-actuator-right {
+    right: 8%;
+}
+
+.haptic-actuator {
+    text-shadow: 1px 1px 0 #111111;
+}
+
+.haptic-actuator::after {
+    content: attr(aria-label);
+}
+
+.haptic-marker {
+    position: absolute;
+    z-index: 3;
+    top: 50%;
+    width: 13px;
+    height: 13px;
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.haptic-target-marker {
+    border: 3px solid #111111;
+    background: #ffffff;
+}
+
+.haptic-output-marker {
+    top: calc(50% + 18px);
+    border: 2px solid #ffffff;
+    background: #111111;
+    box-shadow: 0 0 0 2px #111111;
+    transition: left 120ms steps(4);
+}
+
+.haptic-output-marker.is-rendering {
+    animation: haptic-pop 420ms steps(3);
+}
+
+.haptic-stage.is-success {
+    border-color: var(--haptic-success);
+    background: var(--haptic-success-soft);
+}
+
+.haptic-stage.is-success .haptic-arm {
+    border-color: var(--haptic-success);
+}
+
+.haptic-stage.is-success .haptic-actuator::before,
+.haptic-stage.is-success .haptic-output-marker {
+    background: var(--haptic-success);
+}
+
+.haptic-stage.is-success .haptic-output-marker {
+    box-shadow: 0 0 0 3px var(--haptic-success);
+}
+
+.haptic-stage.is-success .haptic-wave {
+    border-color: var(--haptic-success);
+}
+
+.haptic-wave {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    top: 50%;
+    width: 24px;
+    height: 24px;
+    border: 2px solid #111111;
+    border-radius: 50%;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+}
+
+.haptic-wave.is-rendering {
+    animation: haptic-wave 520ms steps(4);
+}
+
+.haptic-stage-caption {
+    font-family: var(--pixel-font);
+    font-size: 7px;
+    text-align: center;
+}
+
+.haptic-stage-caption::first-letter {
+    color: #777777;
+}
+
+.haptic-station {
+    grid-area: station;
+    border: 3px solid #111111;
+    background: #eeeeee;
+    padding: 9px;
+    box-shadow: inset 0 0 0 2px #ffffff;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+        "modes"
+        "controls"
+        "render"
+        "feedback";
+    gap: 8px;
+    align-items: stretch;
+}
+
+.haptic-mode-control {
+    grid-area: modes;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
+
+.haptic-mode,
+.haptic-render {
+    border: 2px solid #111111;
+    border-radius: 0;
+    background: #ffffff;
+    color: #111111;
+    box-shadow: 2px 2px 0 #111111;
+    font-family: var(--pixel-font);
+    cursor: pointer;
+}
+
+.haptic-mode {
+    padding: 7px 4px;
+    font-size: 8px;
+}
+
+.haptic-mode.is-active {
+    background: #111111;
+    color: #ffffff;
+    box-shadow: none;
+    transform: translate(2px, 2px);
+}
+
+.haptic-controls {
+    grid-area: controls;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.haptic-control {
+    min-width: 0;
+    border: 1px solid #777777;
+    background: #ffffff;
+    padding: 6px;
+}
+
+.haptic-control-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+    margin-bottom: 7px;
+    font-family: var(--pixel-font);
+    font-size: 7px;
+    white-space: nowrap;
+}
+
+.haptic-control-value {
+    font-family: var(--pixel-font);
+}
+
+.haptic-control input {
+    width: 100%;
+    height: 14px;
+    margin: 0;
+    accent-color: #111111;
+    cursor: ew-resize;
+}
+
+.haptic-render {
+    grid-area: render;
+    font-size: 10px;
+    min-height: 36px;
+    padding: 8px;
+}
+
+.haptic-render:hover,
+.haptic-render:focus-visible,
+.haptic-mode:hover,
+.haptic-mode:focus-visible {
+    outline: 2px dashed #111111;
+    outline-offset: 2px;
+}
+
+.haptic-render:active {
+    box-shadow: none;
+    transform: translate(2px, 2px);
+}
+
+.haptic-render:disabled {
+    color: #777777;
+    cursor: wait;
+}
+
+.haptic-feedback {
+    grid-area: feedback;
+    min-height: 26px;
+    border-top: 2px dashed #777777;
+    padding-top: 7px;
+    font-family: var(--pixel-font);
+    font-size: 8px;
+    text-align: center;
+}
+
+.haptic-feedback.is-success {
+    border-color: var(--haptic-success);
+    background: var(--haptic-success);
+    color: #ffffff;
+    border-top-style: solid;
+    box-shadow: 0 0 0 2px var(--haptic-success);
+}
+
+.haptic-feedback.is-fail {
+    text-decoration: line-through;
+}
+
+.haptic-start-screen {
+    position: absolute;
+    z-index: 10;
+    inset: 10px;
+    border: 3px solid #111111;
+    background:
+        linear-gradient(rgba(17, 17, 17, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(17, 17, 17, 0.08) 1px, transparent 1px),
+        #eeeeee;
+    background-size: 8px 8px;
+    box-shadow: inset 0 0 0 4px #ffffff;
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.haptic-start-screen[hidden] {
+    display: none;
+}
+
+.haptic-start-eyebrow {
+    margin-bottom: 18px;
+    padding: 5px 7px;
+    background: #111111;
+    color: #ffffff;
+    font-family: var(--pixel-font);
+    font-size: 8px;
+}
+
+.haptic-start-title {
+    max-width: 220px;
+    font-family: var(--pixel-font);
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+.haptic-start-title::after {
+    content: "";
+    display: block;
+    width: 72px;
+    margin: 14px auto;
+    border-top: 4px double #111111;
+}
+
+.haptic-start-copy {
+    max-width: 240px;
+    margin: 0 0 22px;
+    font-size: 15px;
+    line-height: 1.45;
+}
+
+.haptic-start-button {
+    min-width: 190px;
+    min-height: 48px;
+    border: 3px solid #111111;
+    border-radius: 0;
+    background: #111111;
+    color: #ffffff;
+    box-shadow: 4px 4px 0 #777777;
+    font-family: var(--pixel-font);
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.haptic-start-button:hover,
+.haptic-start-button:focus-visible {
+    background: #ffffff;
+    color: #111111;
+    outline: 3px dashed #111111;
+    outline-offset: 3px;
+}
+
+.haptic-start-button:active {
+    box-shadow: none;
+    transform: translate(4px, 4px);
+}
+
+@keyframes haptic-alert {
+    50% { color: #ffffff; background: #111111; }
+}
+
+@keyframes haptic-pop {
+    50% { transform: translate(-50%, -50%) rotate(45deg) scale(1.8); }
+}
+
+@keyframes haptic-wave {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.4); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(4); }
+}
+
+@media (max-width: 640px) {
+    .meta-playground {
+        min-height: 650px;
+    }
+
+    .slime-layer.haptic-layer {
+        min-height: 608px;
+    }
+
+    .haptic-controls {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
 
