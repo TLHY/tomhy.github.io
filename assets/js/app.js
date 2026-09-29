@@ -917,12 +917,13 @@ function initHapticTycoon(meta = {}) {
     const config = meta.playground || {};
     setText("meta-zone-title", config.title || "Haptic Workshop");
     setText("meta-zone-hint", config.hint || "Match the sensation");
-    playground.setAttribute("aria-label", "Haptic illusion tycoon game");
+    playground.setAttribute("aria-label", "Haptic order kiosk game");
     gameLayer.className = "slime-layer haptic-layer";
     gameLayer.innerHTML = "";
 
     const SAVE_KEY = "tomhy_haptic_tycoon_v1";
     const ORDER_SECONDS = 24;
+    const RUNNER_SECONDS = 10;
     const recipes = [
         {
             mode: "thermal",
@@ -939,7 +940,17 @@ function initHapticTycoon(meta = {}) {
             unit: "buzz",
             delayLabel: "Pulse gap",
             delays: [20, 60, 100]
+        },
+        {
+            mode: "runner",
+            name: "Pulse Course",
+            customer: "Clear the haptic pattern without hitting an obstacle"
         }
+    ];
+    const runnerPatterns = [
+        { name: "STEADY", obstacles: [1.4, 2.6, 3.8, 5, 6.2, 7.4, 8.6] },
+        { name: "DOUBLE", obstacles: [1.3, 2.1, 3.5, 4.3, 5.7, 6.5, 7.9, 8.7] },
+        { name: "SYNCOPATED", obstacles: [1.2, 2.3, 3.1, 4.4, 5.5, 6.3, 7.7, 8.5] }
     ];
     const positions = [25, 50, 75];
     const strengths = [60, 80, 120];
@@ -980,13 +991,28 @@ function initHapticTycoon(meta = {}) {
     scoreboard.append(coinsText, streakText, highText);
 
     const orderCard = element("section", "haptic-order");
+    orderCard.setAttribute("aria-label", "Current customer order");
     const orderTop = element("div", "haptic-order-top");
-    const customer = element("span", "haptic-customer", "CUSTOMER 01");
+    const customer = element("span", "haptic-customer", "ORDER #01");
     const timer = element("span", "haptic-timer", "24.0s");
     orderTop.append(customer, timer);
     const recipeName = element("strong", "haptic-order-name");
     const request = element("span", "haptic-order-request");
-    orderCard.append(orderTop, recipeName, request);
+    const orderSpecs = element("div", "haptic-order-specs");
+
+    function createOrderSpec(label) {
+        const spec = element("div", "haptic-order-spec");
+        const specLabel = element("span", "haptic-order-spec-label", label);
+        const specValue = element("strong", "haptic-order-spec-value", "--");
+        spec.append(specLabel, specValue);
+        orderSpecs.appendChild(spec);
+        return { label: specLabel, value: specValue };
+    }
+
+    const modeSpec = createOrderSpec("SENSATION");
+    const positionSpec = createOrderSpec("POSITION");
+    const strengthSpec = createOrderSpec("INTENSITY");
+    orderCard.append(orderTop, recipeName, request, orderSpecs);
 
     const sensationStage = element("div", "haptic-stage");
     const arm = element("div", "haptic-arm");
@@ -998,8 +1024,30 @@ function initHapticTycoon(meta = {}) {
     outputMarker.setAttribute("aria-label", "Rendered sensation");
     const wave = element("span", "haptic-wave");
     arm.append(leftActuator, rightActuator, targetMarker, outputMarker, wave);
-    const stageCaption = element("div", "haptic-stage-caption", "TARGET  /  OUTPUT");
-    sensationStage.append(arm, stageCaption);
+
+    const runnerTrack = element("div", "haptic-runner-track");
+    runnerTrack.hidden = true;
+    const runnerGrid = element("span", "haptic-runner-grid");
+    const runnerPlayer = element("span", "haptic-runner-player");
+    runnerPlayer.setAttribute("aria-label", "Runner");
+    const runnerFinish = element("span", "haptic-runner-finish", "END");
+    runnerTrack.append(runnerGrid, runnerPlayer, runnerFinish);
+
+    outputMarker.addEventListener("animationend", (event) => {
+        if (event.animationName === "haptic-pop") {
+            outputMarker.classList.remove("is-rendering");
+        }
+    });
+    wave.addEventListener("animationend", (event) => {
+        if (event.animationName === "haptic-wave") {
+            wave.classList.remove("is-rendering");
+        }
+    });
+
+    const stageCaption = element("div", "haptic-stage-caption");
+    const stageLegend = element("span", "haptic-stage-legend", "TARGET / OUTPUT");
+    stageCaption.appendChild(stageLegend);
+    sensationStage.append(arm, runnerTrack, stageCaption);
 
     const station = element("section", "haptic-station");
     const modeControl = element("div", "haptic-mode-control");
@@ -1015,39 +1063,43 @@ function initHapticTycoon(meta = {}) {
 
     const controls = element("div", "haptic-controls");
 
-    function createSlider(key, label, min, max, step) {
-        const row = element("label", "haptic-control");
+    function createStepper(key, label, min, max, step) {
+        const row = element("div", "haptic-control");
         const labelText = element("span", "haptic-control-label", label);
         const valueText = element("output", "haptic-control-value");
         const heading = element("span", "haptic-control-head");
         heading.append(labelText, valueText);
-        const input = document.createElement("input");
-        input.type = "range";
-        input.min = String(min);
-        input.max = String(max);
-        input.step = String(step);
-        input.value = String(state[key]);
-        input.dataset.key = key;
-        input.setAttribute("aria-label", label);
-        row.append(heading, input);
+        const stepper = element("div", "haptic-stepper");
+        const decreaseButton = element("button", "haptic-stepper-button", "-");
+        const increaseButton = element("button", "haptic-stepper-button", "+");
+        decreaseButton.type = "button";
+        increaseButton.type = "button";
+        decreaseButton.setAttribute("aria-label", `Decrease ${label}`);
+        increaseButton.setAttribute("aria-label", `Increase ${label}`);
+        stepper.append(decreaseButton, increaseButton);
+        row.append(heading, stepper);
         controls.appendChild(row);
-        return { input, labelText, valueText };
+        return { decreaseButton, increaseButton, labelText, valueText, min, max, step };
     }
 
-    const leftControl = createSlider("left", "A HEAT", 0, 100, 5);
-    const rightControl = createSlider("right", "B HEAT", 0, 100, 5);
-    const delayControl = createSlider("delay", "SYNC GAP", 0, 120, 20);
-    const renderButton = element("button", "haptic-render", "RENDER");
+    const leftControl = createStepper("left", "A HEAT", 0, 100, 5);
+    const rightControl = createStepper("right", "B HEAT", 0, 100, 5);
+    const delayControl = createStepper("delay", "SYNC GAP", 0, 120, 20);
+    const jumpButton = element("button", "haptic-jump", "JUMP");
+    jumpButton.type = "button";
+    jumpButton.hidden = true;
+    jumpButton.disabled = true;
+    const renderButton = element("button", "haptic-render", "SUBMIT ORDER");
     renderButton.type = "button";
     const feedback = element("div", "haptic-feedback", "NEW ORDER READY");
     feedback.setAttribute("aria-live", "polite");
-    station.append(modeControl, controls, renderButton, feedback);
+    station.append(modeControl, controls, jumpButton, renderButton, feedback);
 
     const startScreen = element("section", "haptic-start-screen");
-    const startEyebrow = element("span", "haptic-start-eyebrow", "LAB SHIFT 01");
-    const startTitle = element("strong", "haptic-start-title", "HAPTIC TYCOON");
-    const startCopy = element("p", "haptic-start-copy", "Render thermal and vibrotactile illusions. Match position, strength, and timing before each order expires.");
-    const startButton = element("button", "haptic-start-button", "START SHIFT");
+    const startEyebrow = element("span", "haptic-start-eyebrow", "SELF-SERVICE LAB");
+    const startTitle = element("strong", "haptic-start-title", "HAPTIC ORDER KIOSK");
+    const startCopy = element("p", "haptic-start-copy", "Read each customer ticket, configure the sensation, then submit the order before pickup time.");
+    const startButton = element("button", "haptic-start-button", "OPEN KIOSK");
     startButton.type = "button";
     startScreen.append(startEyebrow, startTitle, startCopy, startButton);
     gameLayer.append(scoreboard, orderCard, sensationStage, station, startScreen);
@@ -1057,6 +1109,188 @@ function initHapticTycoon(meta = {}) {
         right: rightControl,
         delay: delayControl
     };
+    let syncLoopId = 0;
+    let syncPulseTimeoutIds = [];
+    let lastOrderMode = "";
+    const runner = {
+        active: false,
+        rafId: 0,
+        retryTimeoutId: 0,
+        startTime: 0,
+        lastTime: 0,
+        y: 0,
+        velocity: 0,
+        obstacles: [],
+        lives: 3
+    };
+
+    function pulseMarker(marker, delay) {
+        const visualDelay = delay * 4;
+        const pulse = () => {
+            marker.classList.remove("is-beeping");
+            void marker.offsetWidth;
+            marker.classList.add("is-beeping");
+        };
+
+        pulse();
+        if (visualDelay > 0) {
+            syncPulseTimeoutIds.push(window.setTimeout(pulse, visualDelay));
+        }
+        syncPulseTimeoutIds.push(window.setTimeout(() => marker.classList.remove("is-beeping"), Math.max(180, visualDelay + 180)));
+    }
+
+    function stopSyncIndicators() {
+        window.clearInterval(syncLoopId);
+        syncLoopId = 0;
+        syncPulseTimeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+        syncPulseTimeoutIds = [];
+        targetMarker.classList.remove("is-beeping");
+        outputMarker.classList.remove("is-beeping");
+    }
+
+    function startSyncIndicators() {
+        stopSyncIndicators();
+        const pulseBoth = () => {
+            if (!state.order || state.locked) {
+                return;
+            }
+            syncPulseTimeoutIds = [];
+            pulseMarker(targetMarker, state.order.delay);
+            pulseMarker(outputMarker, state.delay);
+        };
+        pulseBoth();
+        syncLoopId = window.setInterval(pulseBoth, 1100);
+    }
+
+    function stopRunner() {
+        runner.active = false;
+        cancelAnimationFrame(runner.rafId);
+        window.clearTimeout(runner.retryTimeoutId);
+        runner.rafId = 0;
+        runner.retryTimeoutId = 0;
+        runner.obstacles.forEach((obstacle) => obstacle.element.remove());
+        runner.obstacles = [];
+        runner.y = 0;
+        runner.velocity = 0;
+        runnerPlayer.style.transform = "translateY(0)";
+        runnerPlayer.classList.remove("is-jumping", "is-crashed");
+    }
+
+    function finishRunner(success) {
+        if (!runner.active || state.locked) {
+            return;
+        }
+
+        runner.active = false;
+        cancelAnimationFrame(runner.rafId);
+        if (success) {
+            const earned = 15 + state.streak * 2;
+            state.coins += earned;
+            state.streak += 1;
+            state.served += 1;
+            state.highScore = Math.max(state.highScore, state.coins);
+            localStorage.setItem(SAVE_KEY, String(state.highScore));
+            updateScoreboard();
+            finishOrder(`COURSE CLEARED | +${earned} COINS`, true);
+        } else {
+            runner.lives -= 1;
+            strengthSpec.value.textContent = `${runner.lives} / 3`;
+            runnerPlayer.classList.add("is-crashed");
+            jumpButton.disabled = true;
+
+            if (runner.lives > 0) {
+                state.locked = true;
+                feedback.textContent = `HIT | ${runner.lives} ${runner.lives === 1 ? "LIFE" : "LIVES"} LEFT`;
+                feedback.className = "haptic-feedback is-hit";
+                runner.retryTimeoutId = window.setTimeout(() => {
+                    runner.retryTimeoutId = 0;
+                    state.locked = false;
+                    state.deadline = performance.now() + RUNNER_SECONDS * 1000;
+                    timer.textContent = `${RUNNER_SECONDS.toFixed(1)}s`;
+                    timer.classList.remove("is-urgent");
+                    jumpButton.disabled = false;
+                    feedback.textContent = "TRY AGAIN";
+                    feedback.className = "haptic-feedback";
+                    startRunner(state.order.pattern);
+                }, 900);
+            } else {
+                state.streak = 0;
+                state.missed += 1;
+                updateScoreboard();
+                finishOrder("OUT OF LIVES", false);
+            }
+        }
+    }
+
+    function jumpRunner() {
+        if (!runner.active || runner.y > 1) {
+            return;
+        }
+        runner.velocity = 330;
+        runnerPlayer.classList.add("is-jumping");
+        if (navigator.vibrate) {
+            navigator.vibrate(25);
+        }
+    }
+
+    function updateRunner(now) {
+        if (!runner.active) {
+            return;
+        }
+
+        const elapsed = (now - runner.startTime) / 1000;
+        const dt = Math.min((now - runner.lastTime) / 1000, 0.04);
+        runner.lastTime = now;
+        runner.velocity -= 880 * dt;
+        runner.y = Math.max(0, runner.y + runner.velocity * dt);
+        if (runner.y === 0) {
+            runner.velocity = 0;
+            runnerPlayer.classList.remove("is-jumping");
+        }
+        runnerPlayer.style.transform = `translateY(${-runner.y}px)`;
+
+        const width = runnerTrack.clientWidth;
+        const playerX = 28;
+        const playerWidth = 18;
+        const obstacleWidth = 14;
+        const speed = Math.max(120, (width - playerX) / 1.4);
+        let collision = false;
+        runner.obstacles.forEach((obstacle) => {
+            const x = playerX + (obstacle.time - elapsed) * speed;
+            obstacle.element.style.transform = `translateX(${x}px)`;
+            if (!obstacle.passed && x + obstacleWidth < playerX) {
+                obstacle.passed = true;
+                obstacle.element.classList.add("is-passed");
+            }
+            if (!obstacle.passed && x < playerX + playerWidth && x + obstacleWidth > playerX && runner.y < 24) {
+                collision = true;
+            }
+        });
+
+        runnerFinish.style.transform = `translateX(${playerX + (RUNNER_SECONDS - elapsed) * speed}px)`;
+        if (collision) {
+            finishRunner(false);
+            return;
+        }
+        if (elapsed >= RUNNER_SECONDS) {
+            finishRunner(true);
+            return;
+        }
+        runner.rafId = requestAnimationFrame(updateRunner);
+    }
+
+    function startRunner(pattern) {
+        stopRunner();
+        runner.obstacles = pattern.obstacles.map((time) => {
+            const obstacle = element("span", "haptic-runner-obstacle");
+            runnerTrack.appendChild(obstacle);
+            return { element: obstacle, time, passed: false };
+        });
+        runner.active = true;
+        runner.startTime = performance.now();
+        runner.lastTime = runner.startTime;
+        runner.rafId = requestAnimationFrame(updateRunner);
+    }
 
     function updateScoreboard() {
         coinsText.textContent = `COINS ${state.coins}`;
@@ -1078,40 +1312,82 @@ function initHapticTycoon(meta = {}) {
         delayControl.valueText.textContent = `${state.delay}ms`;
         leftControl.valueText.textContent = String(state.left);
         rightControl.valueText.textContent = String(state.right);
+        Object.entries(controlMap).forEach(([key, control]) => {
+            control.decreaseButton.disabled = state[key] <= control.min;
+            control.increaseButton.disabled = state[key] >= control.max;
+        });
+    }
+
+    function setControlLabel(control, label) {
+        control.labelText.textContent = label;
+        control.decreaseButton.setAttribute("aria-label", `Decrease ${label}`);
+        control.increaseButton.setAttribute("aria-label", `Increase ${label}`);
     }
 
     function setMode(mode) {
         state.mode = mode;
         thermalButton.classList.toggle("is-active", mode === "thermal");
         vibroButton.classList.toggle("is-active", mode === "vibro");
-        leftControl.labelText.textContent = mode === "thermal" ? "A HEAT" : "A BUZZ";
-        rightControl.labelText.textContent = mode === "thermal" ? "B HEAT" : "B BUZZ";
-        delayControl.labelText.textContent = mode === "thermal" ? "SYNC GAP" : "PULSE GAP";
+        setControlLabel(leftControl, mode === "thermal" ? "A HEAT" : "A BUZZ");
+        setControlLabel(rightControl, mode === "thermal" ? "B HEAT" : "B BUZZ");
+        setControlLabel(delayControl, mode === "thermal" ? "SYNC GAP" : "PULSE GAP");
         sensationStage.dataset.mode = mode;
     }
 
     function nextOrder() {
-        const recipe = recipes[Math.floor(Math.random() * recipes.length)];
-        state.order = {
-            ...recipe,
-            position: positions[Math.floor(Math.random() * positions.length)],
-            strength: strengths[Math.floor(Math.random() * strengths.length)],
-            delay: recipe.delays[Math.floor(Math.random() * recipe.delays.length)]
-        };
-        state.deadline = performance.now() + ORDER_SECONDS * 1000;
+        stopRunner();
+        stopSyncIndicators();
+        outputMarker.classList.remove("is-rendering");
+        wave.classList.remove("is-rendering");
+        const availableRecipes = recipes.filter((candidate) => candidate.mode !== lastOrderMode);
+        const recipe = availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
+        const isRunnerOrder = recipe.mode === "runner";
+        lastOrderMode = recipe.mode;
+        state.order = isRunnerOrder
+            ? { ...recipe, pattern: runnerPatterns[Math.floor(Math.random() * runnerPatterns.length)] }
+            : {
+                ...recipe,
+                position: positions[Math.floor(Math.random() * positions.length)],
+                strength: strengths[Math.floor(Math.random() * strengths.length)],
+                delay: recipe.delays[Math.floor(Math.random() * recipe.delays.length)]
+            };
+        const orderSeconds = isRunnerOrder ? RUNNER_SECONDS : ORDER_SECONDS;
+        state.deadline = performance.now() + orderSeconds * 1000;
         state.locked = false;
-        customer.textContent = `CUSTOMER ${String(state.served + state.missed + 1).padStart(2, "0")}`;
+        customer.textContent = `ORDER #${String(state.served + state.missed + 1).padStart(2, "0")}`;
         recipeName.textContent = state.order.name;
-        request.textContent = `${state.order.customer}: ${positionNames[state.order.position]} / ${strengthNames[state.order.strength]} / ${state.order.delay}ms`;
-        targetMarker.style.left = `${state.order.position}%`;
-        targetMarker.style.opacity = "1";
+        request.textContent = state.order.customer;
+        modeSpec.label.textContent = isRunnerOrder ? "ORDER" : "SENSATION";
+        positionSpec.label.textContent = isRunnerOrder ? "PATTERN" : "POSITION";
+        strengthSpec.label.textContent = isRunnerOrder ? "LIVES" : "INTENSITY";
+        modeSpec.value.textContent = isRunnerOrder ? "RHYTHM RUN" : state.order.mode === "thermal" ? "THERMAL" : "VIBRATION";
+        positionSpec.value.textContent = isRunnerOrder ? state.order.pattern.name : positionNames[state.order.position];
+        runner.lives = isRunnerOrder ? 3 : runner.lives;
+        strengthSpec.value.textContent = isRunnerOrder ? `${runner.lives} / 3` : strengthNames[state.order.strength];
+        if (!isRunnerOrder) {
+            targetMarker.style.left = `${state.order.position}%`;
+            targetMarker.style.opacity = "1";
+        }
         orderCard.dataset.mode = state.order.mode;
-        timer.textContent = `${ORDER_SECONDS.toFixed(1)}s`;
+        timer.textContent = `${orderSeconds.toFixed(1)}s`;
         timer.classList.remove("is-urgent");
         sensationStage.classList.remove("is-success");
+        sensationStage.classList.toggle("is-runner", isRunnerOrder);
+        station.classList.toggle("is-runner", isRunnerOrder);
+        arm.hidden = isRunnerOrder;
+        runnerTrack.hidden = !isRunnerOrder;
+        jumpButton.hidden = !isRunnerOrder;
+        jumpButton.disabled = !isRunnerOrder;
+        stageLegend.textContent = isRunnerOrder ? "READ THE PATTERN / JUMP" : "TARGET / OUTPUT";
         feedback.textContent = "BUILD THE REQUEST";
         feedback.className = "haptic-feedback";
-        renderButton.disabled = false;
+        renderButton.disabled = isRunnerOrder;
+        if (isRunnerOrder) {
+            feedback.textContent = "COURSE IN PROGRESS";
+            startRunner(state.order.pattern);
+        } else {
+            startSyncIndicators();
+        }
     }
 
     function startGame() {
@@ -1127,6 +1403,9 @@ function initHapticTycoon(meta = {}) {
 
     function finishOrder(message, success) {
         state.locked = true;
+        jumpButton.disabled = true;
+        stopRunner();
+        stopSyncIndicators();
         renderButton.disabled = true;
         feedback.textContent = message;
         feedback.className = `haptic-feedback ${success ? "is-success" : "is-fail"}`;
@@ -1134,7 +1413,7 @@ function initHapticTycoon(meta = {}) {
     }
 
     function renderSensation() {
-        if (!state.started || state.locked || !state.order) {
+        if (!state.started || state.locked || !state.order || state.order.mode === "runner") {
             return;
         }
 
@@ -1177,6 +1456,10 @@ function initHapticTycoon(meta = {}) {
             timer.textContent = `${(remaining / 1000).toFixed(1)}s`;
             timer.classList.toggle("is-urgent", remaining < 6000);
             if (remaining === 0) {
+                if (state.order.mode === "runner") {
+                    finishRunner(true);
+                    return;
+                }
                 state.streak = 0;
                 state.missed += 1;
                 updateScoreboard();
@@ -1190,21 +1473,35 @@ function initHapticTycoon(meta = {}) {
     });
 
     Object.entries(controlMap).forEach(([key, control]) => {
-        control.input.addEventListener("input", () => {
-            state[key] = Number(control.input.value);
+        control.decreaseButton.addEventListener("click", () => {
+            state[key] = Math.max(control.min, state[key] - control.step);
+            updateOutput();
+        });
+        control.increaseButton.addEventListener("click", () => {
+            state[key] = Math.min(control.max, state[key] + control.step);
             updateOutput();
         });
     });
+    jumpButton.addEventListener("click", jumpRunner);
     renderButton.addEventListener("click", renderSensation);
     startButton.addEventListener("click", startGame);
+
+    function handleRunnerKeydown(event) {
+        if (runner.active && (event.code === "Space" || event.code === "ArrowUp")) {
+            event.preventDefault();
+            jumpRunner();
+        }
+    }
+
+    window.addEventListener("keydown", handleRunnerKeydown);
 
     updateScoreboard();
     setMode(state.mode);
     updateOutput();
-    customer.textContent = "WORKSHOP CLOSED";
+    customer.textContent = "KIOSK CLOSED";
     timer.textContent = "READY";
-    recipeName.textContent = "Choose when to begin";
-    request.textContent = "The order clock starts after you press Start Shift.";
+    recipeName.textContent = "No active order";
+    request.textContent = "Open the kiosk to receive a customer ticket.";
     targetMarker.style.opacity = "0";
     renderButton.disabled = true;
     state.timerId = window.setInterval(tick, 100);
@@ -1212,6 +1509,9 @@ function initHapticTycoon(meta = {}) {
     slimeEngine = {
         stop() {
             window.clearInterval(state.timerId);
+            window.removeEventListener("keydown", handleRunnerKeydown);
+            stopRunner();
+            stopSyncIndicators();
         }
     };
 }
