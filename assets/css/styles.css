@@ -2376,6 +2376,10 @@ body::after,
     animation: haptic-pop 420ms steps(3);
 }
 
+.haptic-stage[data-mode="thermal"] .haptic-actuator {
+    display: none;
+}
+
 .haptic-marker.is-beeping {
     animation: haptic-marker-beep 180ms steps(2);
 }
@@ -2454,11 +2458,27 @@ body::after,
     display: none;
 }
 
+.haptic-station.is-thermal-game {
+    grid-template-areas:
+        "thermal"
+        "render"
+        "feedback";
+}
+
+.haptic-station.is-thermal-game .haptic-mode-control,
+.haptic-station.is-thermal-game .haptic-controls {
+    display: none;
+}
+
 .haptic-mode-control {
     grid-area: modes;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 5px;
+}
+
+.haptic-mode-control.is-single-mode {
+    grid-template-columns: 1fr;
 }
 
 .haptic-mode,
@@ -2511,6 +2531,146 @@ body::after,
 
 .haptic-control-value {
     font-family: var(--pixel-font);
+}
+
+.haptic-thermal-controls {
+    grid-area: thermal;
+    display: grid;
+    gap: 8px;
+}
+
+.haptic-thermal-controls[hidden] {
+    display: none;
+}
+
+.haptic-thermal-placement,
+.haptic-thermal-pump {
+    display: grid;
+    gap: 5px;
+}
+
+.haptic-thermal-control-label,
+.haptic-thermal-pump-readout {
+    font-family: var(--pixel-font);
+    font-size: 7px;
+}
+
+.haptic-thermal-position-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+}
+
+.haptic-thermal-position-button,
+.haptic-thermal-vent,
+.haptic-thermal-pump-button {
+    min-width: 0;
+    min-height: 44px;
+    border: 2px solid #111111;
+    border-radius: 0;
+    background: #ffffff;
+    color: #111111;
+    box-shadow: 2px 2px 0 #111111;
+    font-family: var(--pixel-font);
+    cursor: pointer;
+}
+
+.haptic-thermal-position-button {
+    padding: 6px 2px;
+    font-size: 7px;
+}
+
+.haptic-thermal-position-button.is-active {
+    background: #111111;
+    color: #ffffff;
+    box-shadow: none;
+    transform: translate(2px, 2px);
+}
+
+.haptic-thermal-pump-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.haptic-thermal-gauge {
+    height: 28px;
+    border: 2px solid #111111;
+    padding: 3px;
+    background: #ffffff;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 3px;
+}
+
+.haptic-thermal-gauge.is-pumping {
+    animation: haptic-pump-flash 180ms steps(2);
+}
+
+.haptic-thermal-gauge-segment {
+    position: relative;
+    border: 1px solid #777777;
+    background: #eeeeee;
+}
+
+.haptic-thermal-gauge-segment.is-filled {
+    background: #111111;
+}
+
+.haptic-thermal-gauge-segment.is-target::after {
+    content: "";
+    position: absolute;
+    inset: -4px -2px;
+    border: 2px dashed #111111;
+}
+
+.haptic-thermal-gauge-segment.is-filled.is-target::after {
+    border-color: #ffffff;
+}
+
+.haptic-thermal-pump-actions {
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 8px;
+}
+
+.haptic-thermal-vent {
+    padding: 6px 2px;
+    font-size: 7px;
+}
+
+.haptic-thermal-pump-button {
+    min-height: 54px;
+    padding: 8px 4px;
+    background: #111111;
+    color: #ffffff;
+    font-size: 9px;
+    box-shadow: 3px 3px 0 #777777;
+}
+
+.haptic-thermal-position-button:hover,
+.haptic-thermal-position-button:focus-visible,
+.haptic-thermal-vent:hover,
+.haptic-thermal-vent:focus-visible,
+.haptic-thermal-pump-button:hover,
+.haptic-thermal-pump-button:focus-visible {
+    outline: 2px dashed #111111;
+    outline-offset: 2px;
+}
+
+.haptic-thermal-vent:active,
+.haptic-thermal-pump-button:active {
+    box-shadow: none;
+    transform: translate(2px, 2px);
+}
+
+.haptic-thermal-position-button:disabled,
+.haptic-thermal-vent:disabled,
+.haptic-thermal-pump-button:disabled {
+    background: #d9d9d9;
+    color: #777777;
+    box-shadow: none;
+    cursor: default;
 }
 
 .haptic-stepper {
@@ -2693,6 +2853,93 @@ body::after,
     line-height: 1.45;
 }
 
+.haptic-nickname-field {
+    width: min(260px, 100%);
+    margin-bottom: 12px;
+    display: grid;
+    gap: 5px;
+    text-align: left;
+}
+
+.haptic-nickname-label {
+    font-family: var(--pixel-font);
+    font-size: 7px;
+}
+
+.haptic-nickname-input {
+    width: 100%;
+    min-height: 44px;
+    border: 3px solid #111111;
+    border-radius: 0;
+    background: #ffffff;
+    color: #111111;
+    padding: 8px 10px;
+    font-family: var(--pixel-font);
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+.haptic-nickname-input:focus-visible {
+    outline: 3px dashed #111111;
+    outline-offset: 3px;
+}
+
+.haptic-rankings {
+    width: min(280px, 100%);
+    margin-bottom: 16px;
+    border: 2px solid #111111;
+    background: #ffffff;
+    text-align: left;
+}
+
+.haptic-rankings-title {
+    display: block;
+    padding: 7px 8px;
+    border-bottom: 2px solid #111111;
+    background: #111111;
+    color: #ffffff;
+    font-family: var(--pixel-font);
+    font-size: 8px;
+    text-align: center;
+}
+
+.haptic-rankings-list {
+    min-height: 30px;
+    margin: 0;
+    padding: 5px 7px;
+    list-style: none;
+    display: grid;
+    gap: 3px;
+}
+
+.haptic-ranking-row {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    gap: 6px;
+    align-items: center;
+    font-family: var(--pixel-font);
+    font-size: 7px;
+}
+
+.haptic-ranking-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.haptic-ranking-score {
+    white-space: nowrap;
+}
+
+.haptic-ranking-empty {
+    padding: 4px;
+    font-family: var(--pixel-font);
+    font-size: 7px;
+    text-align: center;
+    color: #555555;
+}
+
 .haptic-start-button {
     min-width: 190px;
     min-height: 48px;
@@ -2735,6 +2982,12 @@ body::after,
 @keyframes haptic-marker-beep {
     50% {
         opacity: 0.25;
+    }
+}
+
+@keyframes haptic-pump-flash {
+    50% {
+        background: #111111;
     }
 }
 

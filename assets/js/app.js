@@ -922,6 +922,8 @@ function initHapticTycoon(meta = {}) {
     gameLayer.innerHTML = "";
 
     const SAVE_KEY = "tomhy_haptic_tycoon_v1";
+    const RANKINGS_KEY = "tomhy_haptic_rankings_v1";
+    const NICKNAME_KEY = "tomhy_haptic_nickname_v1";
     const ORDER_SECONDS = 24;
     const RUNNER_SECONDS = 10;
     const recipes = [
@@ -962,6 +964,7 @@ function initHapticTycoon(meta = {}) {
         served: 0,
         missed: 0,
         highScore: Number(localStorage.getItem(SAVE_KEY)) || 0,
+        nickname: "",
         mode: "thermal",
         left: 60,
         right: 60,
@@ -1085,6 +1088,39 @@ function initHapticTycoon(meta = {}) {
     const leftControl = createStepper("left", "A HEAT", 0, 100, 5);
     const rightControl = createStepper("right", "B HEAT", 0, 100, 5);
     const delayControl = createStepper("delay", "SYNC GAP", 0, 120, 20);
+    const thermalControls = element("div", "haptic-thermal-controls");
+    thermalControls.hidden = true;
+    const thermalPlacement = element("div", "haptic-thermal-placement");
+    const thermalPlacementLabel = element("span", "haptic-thermal-control-label", "PLACE REFERRAL");
+    const thermalPositionButtons = element("div", "haptic-thermal-position-buttons");
+    const positionButtons = positions.map((position) => {
+        const button = element("button", "haptic-thermal-position-button", positionNames[position]);
+        button.type = "button";
+        button.dataset.position = String(position);
+        thermalPositionButtons.appendChild(button);
+        return button;
+    });
+    thermalPlacement.append(thermalPlacementLabel, thermalPositionButtons);
+    const thermalPump = element("div", "haptic-thermal-pump");
+    const thermalPumpHead = element("div", "haptic-thermal-pump-head");
+    const thermalPumpLabel = element("span", "haptic-thermal-control-label", "PUMPED HEAT");
+    const thermalPumpReadout = element("output", "haptic-thermal-pump-readout", "COLD");
+    thermalPumpHead.append(thermalPumpLabel, thermalPumpReadout);
+    const thermalGauge = element("div", "haptic-thermal-gauge");
+    thermalGauge.setAttribute("aria-label", "Pumped heat level");
+    const thermalGaugeSegments = Array.from({ length: 6 }, () => {
+        const segment = element("span", "haptic-thermal-gauge-segment");
+        thermalGauge.appendChild(segment);
+        return segment;
+    });
+    const thermalPumpActions = element("div", "haptic-thermal-pump-actions");
+    const ventButton = element("button", "haptic-thermal-vent", "VENT");
+    const pumpButton = element("button", "haptic-thermal-pump-button", "PUMP HEAT");
+    ventButton.type = "button";
+    pumpButton.type = "button";
+    thermalPumpActions.append(ventButton, pumpButton);
+    thermalPump.append(thermalPumpHead, thermalGauge, thermalPumpActions);
+    thermalControls.append(thermalPlacement, thermalPump);
     const jumpButton = element("button", "haptic-jump", "JUMP");
     jumpButton.type = "button";
     jumpButton.hidden = true;
@@ -1093,15 +1129,30 @@ function initHapticTycoon(meta = {}) {
     renderButton.type = "button";
     const feedback = element("div", "haptic-feedback", "NEW ORDER READY");
     feedback.setAttribute("aria-live", "polite");
-    station.append(modeControl, controls, jumpButton, renderButton, feedback);
+    station.append(modeControl, controls, thermalControls, jumpButton, renderButton, feedback);
 
     const startScreen = element("section", "haptic-start-screen");
     const startEyebrow = element("span", "haptic-start-eyebrow", "SELF-SERVICE LAB");
     const startTitle = element("strong", "haptic-start-title", "HAPTIC ORDER KIOSK");
     const startCopy = element("p", "haptic-start-copy", "Read each customer ticket, configure the sensation, then submit the order before pickup time.");
+    const nicknameField = element("label", "haptic-nickname-field");
+    const nicknameLabel = element("span", "haptic-nickname-label", "NICKNAME");
+    const nicknameInput = element("input", "haptic-nickname-input");
+    nicknameInput.type = "text";
+    nicknameInput.maxLength = 12;
+    nicknameInput.placeholder = "ENTER NAME";
+    nicknameInput.autocomplete = "nickname";
+    nicknameInput.spellcheck = false;
+    nicknameInput.required = true;
+    nicknameField.append(nicknameLabel, nicknameInput);
+    const rankings = element("section", "haptic-rankings");
+    rankings.setAttribute("aria-label", "Local best streak rankings");
+    const rankingsTitle = element("strong", "haptic-rankings-title", "LOCAL RANKING");
+    const rankingsList = element("ol", "haptic-rankings-list");
+    rankings.append(rankingsTitle, rankingsList);
     const startButton = element("button", "haptic-start-button", "OPEN KIOSK");
     startButton.type = "button";
-    startScreen.append(startEyebrow, startTitle, startCopy, startButton);
+    startScreen.append(startEyebrow, startTitle, startCopy, nicknameField, rankings, startButton);
     gameLayer.append(scoreboard, orderCard, sensationStage, station, startScreen);
 
     const controlMap = {
@@ -1123,6 +1174,72 @@ function initHapticTycoon(meta = {}) {
         obstacles: [],
         lives: 3
     };
+    const thermalGame = {
+        position: 50,
+        strength: 0
+    };
+
+    function normalizeNickname(value) {
+        return String(value || "").trim().replace(/\s+/g, " ").slice(0, 12);
+    }
+
+    function loadRankings() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(RANKINGS_KEY) || "[]");
+            if (!Array.isArray(saved)) {
+                return [];
+            }
+            return saved.filter((entry) => entry && typeof entry.nickname === "string");
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function renderRankings() {
+        const saved = loadRankings()
+            .sort((a, b) => (Number(b.bestStreak) || 0) - (Number(a.bestStreak) || 0) || (Number(b.highScore) || 0) - (Number(a.highScore) || 0))
+            .slice(0, 5);
+        rankingsList.innerHTML = "";
+
+        if (saved.length === 0) {
+            rankingsList.appendChild(element("li", "haptic-ranking-empty", "NO SCORES YET"));
+            return;
+        }
+
+        saved.forEach((entry, index) => {
+            const row = element("li", "haptic-ranking-row");
+            const rank = element("span", "haptic-ranking-position", `#${index + 1}`);
+            const name = element("span", "haptic-ranking-name", entry.nickname);
+            const score = element("span", "haptic-ranking-score", `${Number(entry.bestStreak) || 0} STREAK`);
+            row.append(rank, name, score);
+            rankingsList.appendChild(row);
+        });
+    }
+
+    function recordRanking() {
+        const nickname = normalizeNickname(state.nickname);
+        if (!nickname) {
+            return;
+        }
+
+        const saved = loadRankings();
+        const existing = saved.find((entry) => entry.nickname.toLowerCase() === nickname.toLowerCase());
+        if (existing) {
+            existing.nickname = nickname;
+            existing.bestStreak = Math.max(Number(existing.bestStreak) || 0, state.streak);
+            existing.highScore = Math.max(Number(existing.highScore) || 0, state.coins);
+        } else {
+            saved.push({ nickname, bestStreak: state.streak, highScore: state.coins });
+        }
+
+        try {
+            localStorage.setItem(RANKINGS_KEY, JSON.stringify(saved));
+            localStorage.setItem(NICKNAME_KEY, nickname);
+        } catch (error) {
+            // Ignore storage restrictions.
+        }
+        renderRankings();
+    }
 
     function pulseMarker(marker, delay) {
         const visualDelay = delay * 4;
@@ -1162,6 +1279,79 @@ function initHapticTycoon(meta = {}) {
         syncLoopId = window.setInterval(pulseBoth, 1100);
     }
 
+    function stopThermalGame() {
+        positionButtons.forEach((button) => {
+            button.disabled = true;
+        });
+        pumpButton.disabled = true;
+        ventButton.disabled = true;
+    }
+
+    function updateThermalSelection() {
+        const rightPower = thermalGame.strength * ((thermalGame.position - 10) / 80);
+        state.left = thermalGame.strength - rightPower;
+        state.right = rightPower;
+        state.delay = state.order.delay;
+        updateOutput();
+        outputMarker.style.left = `${thermalGame.position}%`;
+        outputMarker.style.opacity = String(0.2 + (thermalGame.strength / 120) * 0.8);
+        positionButtons.forEach((button) => {
+            button.classList.toggle("is-active", Number(button.dataset.position) === thermalGame.position);
+        });
+        thermalGaugeSegments.forEach((segment, index) => {
+            const segmentStrength = (index + 1) * 20;
+            segment.classList.toggle("is-filled", segmentStrength <= thermalGame.strength);
+            segment.classList.toggle("is-target", segmentStrength === state.order.strength);
+        });
+        thermalPumpReadout.textContent = strengthNames[thermalGame.strength] || (thermalGame.strength === 0 ? "COLD" : `${thermalGame.strength / 20} / 6`);
+        pumpButton.disabled = thermalGame.strength >= 120;
+        ventButton.disabled = thermalGame.strength <= 0;
+        renderButton.disabled = thermalGame.strength === 0;
+    }
+
+    function resetThermalGame() {
+        thermalGame.position = 50;
+        thermalGame.strength = 0;
+        positionButtons.forEach((button) => {
+            button.disabled = false;
+        });
+        updateThermalSelection();
+    }
+
+    function setThermalPosition(position) {
+        if (!state.started || state.locked || !state.order || state.order.mode !== "thermal") {
+            return;
+        }
+
+        thermalGame.position = position;
+        updateThermalSelection();
+        feedback.textContent = `${positionNames[thermalGame.position]} PLACED | PUMP TO ${strengthNames[state.order.strength]}`;
+    }
+
+    function moveThermalDiamond(direction) {
+        const currentIndex = positions.indexOf(thermalGame.position);
+        const nextIndex = Math.max(0, Math.min(positions.length - 1, currentIndex + direction));
+        setThermalPosition(positions[nextIndex]);
+    }
+
+    function adjustThermalHeat(amount) {
+        if (!state.started || state.locked || !state.order || state.order.mode !== "thermal") {
+            return;
+        }
+
+        thermalGame.strength = Math.max(0, Math.min(120, thermalGame.strength + amount));
+        updateThermalSelection();
+        if (amount > 0) {
+            thermalGauge.classList.remove("is-pumping");
+            void thermalGauge.offsetWidth;
+            thermalGauge.classList.add("is-pumping");
+            if (navigator.vibrate) {
+                navigator.vibrate(18);
+            }
+        }
+        feedback.textContent = `${thermalPumpReadout.textContent} HEAT | TARGET ${strengthNames[state.order.strength]}`;
+    }
+
     function stopRunner() {
         runner.active = false;
         cancelAnimationFrame(runner.rafId);
@@ -1190,6 +1380,7 @@ function initHapticTycoon(meta = {}) {
             state.served += 1;
             state.highScore = Math.max(state.highScore, state.coins);
             localStorage.setItem(SAVE_KEY, String(state.highScore));
+            recordRanking();
             updateScoreboard();
             finishOrder(`COURSE CLEARED | +${earned} COINS`, true);
         } else {
@@ -1337,11 +1528,14 @@ function initHapticTycoon(meta = {}) {
     function nextOrder() {
         stopRunner();
         stopSyncIndicators();
+        stopThermalGame();
         outputMarker.classList.remove("is-rendering");
         wave.classList.remove("is-rendering");
         const availableRecipes = recipes.filter((candidate) => candidate.mode !== lastOrderMode);
         const recipe = availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
         const isRunnerOrder = recipe.mode === "runner";
+        const isPhantomOrder = recipe.mode === "vibro";
+        const isThermalOrder = recipe.mode === "thermal";
         lastOrderMode = recipe.mode;
         state.order = isRunnerOrder
             ? { ...recipe, pattern: runnerPatterns[Math.floor(Math.random() * runnerPatterns.length)] }
@@ -1374,6 +1568,10 @@ function initHapticTycoon(meta = {}) {
         sensationStage.classList.remove("is-success");
         sensationStage.classList.toggle("is-runner", isRunnerOrder);
         station.classList.toggle("is-runner", isRunnerOrder);
+        station.classList.toggle("is-thermal-game", isThermalOrder);
+        modeControl.classList.toggle("is-single-mode", isPhantomOrder);
+        thermalButton.hidden = isPhantomOrder;
+        thermalControls.hidden = !isThermalOrder;
         arm.hidden = isRunnerOrder;
         runnerTrack.hidden = !isRunnerOrder;
         jumpButton.hidden = !isRunnerOrder;
@@ -1385,7 +1583,15 @@ function initHapticTycoon(meta = {}) {
         if (isRunnerOrder) {
             feedback.textContent = "COURSE IN PROGRESS";
             startRunner(state.order.pattern);
+        } else if (isThermalOrder) {
+            setMode("thermal");
+            resetThermalGame();
+            stageLegend.textContent = "TARGET / PUMPED REFERRAL";
+            feedback.textContent = `PLACE DIAMOND | PUMP TO ${strengthNames[state.order.strength]}`;
         } else {
+            if (isPhantomOrder) {
+                setMode("vibro");
+            }
             startSyncIndicators();
         }
     }
@@ -1395,6 +1601,18 @@ function initHapticTycoon(meta = {}) {
             return;
         }
 
+        const nickname = normalizeNickname(nicknameInput.value);
+        if (!nickname) {
+            nicknameInput.setCustomValidity("Enter a nickname to join the ranking.");
+            nicknameInput.reportValidity();
+            nicknameInput.focus();
+            return;
+        }
+
+        nicknameInput.setCustomValidity("");
+        nicknameInput.value = nickname;
+        state.nickname = nickname;
+        recordRanking();
         state.started = true;
         startScreen.hidden = true;
         gameLayer.classList.add("is-playing");
@@ -1406,6 +1624,7 @@ function initHapticTycoon(meta = {}) {
         jumpButton.disabled = true;
         stopRunner();
         stopSyncIndicators();
+        stopThermalGame();
         renderButton.disabled = true;
         feedback.textContent = message;
         feedback.className = `haptic-feedback ${success ? "is-success" : "is-fail"}`;
@@ -1421,8 +1640,10 @@ function initHapticTycoon(meta = {}) {
         const powerError = Math.abs(state.left + state.right - state.order.strength);
         const delayError = Math.abs(state.delay - state.order.delay);
         const modePenalty = state.mode === state.order.mode ? 0 : 45;
-        const accuracy = Math.max(0, Math.round(100 - positionError * 1.25 - powerError * 0.35 - delayError * 0.22 - modePenalty));
-        const earned = accuracy >= 55 ? Math.max(1, Math.round(accuracy / 10) + state.streak) : 0;
+        const powerWeight = state.order.mode === "thermal" ? 1.3 : 0.35;
+        const successThreshold = state.order.mode === "thermal" ? 80 : 55;
+        const accuracy = Math.max(0, Math.round(100 - positionError * 1.25 - powerError * powerWeight - delayError * 0.22 - modePenalty));
+        const earned = accuracy >= successThreshold ? Math.max(1, Math.round(accuracy / 10) + state.streak) : 0;
 
         outputMarker.classList.remove("is-rendering");
         wave.classList.remove("is-rendering");
@@ -1434,12 +1655,13 @@ function initHapticTycoon(meta = {}) {
             navigator.vibrate([40, Math.max(20, state.delay), 40]);
         }
 
-        if (accuracy >= 55) {
+        if (accuracy >= successThreshold) {
             state.coins += earned;
             state.streak += 1;
             state.served += 1;
             state.highScore = Math.max(state.highScore, state.coins);
             localStorage.setItem(SAVE_KEY, String(state.highScore));
+            recordRanking();
             sensationStage.classList.add("is-success");
             finishOrder(`RENDERING SUCCESSFUL | ${accuracy}% MATCH | +${earned} COINS`, true);
         } else {
@@ -1472,6 +1694,15 @@ function initHapticTycoon(meta = {}) {
         button.addEventListener("click", () => setMode(button.dataset.mode));
     });
 
+    positionButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            setThermalPosition(Number(button.dataset.position));
+        });
+    });
+    pumpButton.addEventListener("click", () => adjustThermalHeat(20));
+    ventButton.addEventListener("click", () => adjustThermalHeat(-20));
+    thermalGauge.addEventListener("animationend", () => thermalGauge.classList.remove("is-pumping"));
+
     Object.entries(controlMap).forEach(([key, control]) => {
         control.decreaseButton.addEventListener("click", () => {
             state[key] = Math.max(control.min, state[key] - control.step);
@@ -1485,16 +1716,32 @@ function initHapticTycoon(meta = {}) {
     jumpButton.addEventListener("click", jumpRunner);
     renderButton.addEventListener("click", renderSensation);
     startButton.addEventListener("click", startGame);
+    nicknameInput.addEventListener("input", () => nicknameInput.setCustomValidity(""));
+    nicknameInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            startGame();
+        }
+    });
 
-    function handleRunnerKeydown(event) {
+    function handleGameKeydown(event) {
         if (runner.active && (event.code === "Space" || event.code === "ArrowUp")) {
             event.preventDefault();
             jumpRunner();
         }
+        if (state.started && !state.locked && state.order?.mode === "thermal" && (event.code === "ArrowLeft" || event.code === "ArrowRight")) {
+            event.preventDefault();
+            moveThermalDiamond(event.code === "ArrowLeft" ? -1 : 1);
+        }
     }
 
-    window.addEventListener("keydown", handleRunnerKeydown);
+    window.addEventListener("keydown", handleGameKeydown);
 
+    try {
+        nicknameInput.value = normalizeNickname(localStorage.getItem(NICKNAME_KEY));
+    } catch (error) {
+        nicknameInput.value = "";
+    }
+    renderRankings();
     updateScoreboard();
     setMode(state.mode);
     updateOutput();
@@ -1509,9 +1756,10 @@ function initHapticTycoon(meta = {}) {
     slimeEngine = {
         stop() {
             window.clearInterval(state.timerId);
-            window.removeEventListener("keydown", handleRunnerKeydown);
+            window.removeEventListener("keydown", handleGameKeydown);
             stopRunner();
             stopSyncIndicators();
+            stopThermalGame();
         }
     };
 }
