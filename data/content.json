@@ -75,8 +75,8 @@
         "title": "Thermal Crossing: Palm-Free Thermal Rendering with Thermal Illusions",
         "text": "Authors: **Hyung Il Yi**, Hyung Wook Yi, Sang Ho Yoon",
         "text2": "Conference: ACM ISWC 2026",
-        "link": "",
-        "image": ""
+        "link": "https://dl.acm.org/doi/abs/10.1145/3830727.3834812",
+        "image": "images/ThermalCrossingTeaser.jpg"
       },{
         "date": "2025.10",
         "title": "InvisiBow: Finger-Held Device for Bimanual Haptic Illusions during Virtual Archery",
