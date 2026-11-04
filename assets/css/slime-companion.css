@@ -97,3 +97,6 @@
 
 .slime-writing-game { background:#f2e8d8; border-color:#b5a27e; color:#5a4931; }
 .slime-writing-game:hover { background:#eadcc3; }
+
+/* Keep the shared pixel sprite crisp while its parent handles motion. */
+.mochi-pixel-art { object-fit: contain; image-rendering: pixelated; user-select: none; }
