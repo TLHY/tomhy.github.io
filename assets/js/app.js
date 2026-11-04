@@ -2180,7 +2180,7 @@ function fillProfileDock(data = {}) {
         email.href = emailValue.startsWith("mailto:") ? emailValue : `mailto:${emailValue}`;
         email.ariaLabel = "Email";
         email.title = "Email";
-        email.textContent = emailValue.replace(/^mailto:/, "");
+        email.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="m3 6 9 7 9-7"/></svg>';
         linksContainer.appendChild(email);
     }
 }

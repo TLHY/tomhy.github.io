@@ -5,16 +5,28 @@
 
 body {
     align-items: flex-start;
-    padding: 32px;
-    background: #e3e3df;
+    padding: 64px 32px 48px;
+    background: #72b5df;
     font-size: 18px;
     line-height: 1.65;
 }
 
+/* A fixed game-world backdrop, behind opaque reading panels. */
+body::before {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 1;
+    background: url("../../images/pixel-park.webp") center center / cover no-repeat;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
 .console-wrap {
-    max-width: 1480px;
+    max-width: 1320px;
     padding: 28px;
-    background: #f6f6f2;
+    background: rgba(246, 246, 242, 0.9);
 }
 
 .profile-dock {
@@ -35,6 +47,7 @@ body {
 .dock-body .pixel-card ul li { background: none; border: 0; padding: 0; }
 .dock-links { flex-wrap: wrap; margin-top: 20px; gap: 12px; }
 .social-link { width: auto; height: auto; min-height: 44px; padding: 7px 14px; font: 600 16px/1.5 var(--reading-font); overflow-wrap: anywhere; }
+.social-link-email { min-width: 44px; }
 
 .tab-bar { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 28px 0 20px; overflow: visible; }
 .pak-tab { min-height: 64px; font-size: 11px; padding: 20px 8px 16px; }
@@ -94,7 +107,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .social-link:hover, .profile-item-link:hover, .publication-title-link:hover { text-decoration: underline; }
 
 @media (max-width: 1100px) {
-    body { padding: 20px; }
+    body { padding: 56px 20px 32px; }
     .console-wrap { padding: 20px; }
     .page-layout { grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; }
     .panel, #home.panel { padding: 18px; }
@@ -110,7 +123,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 
 @media (max-width: 540px) {
-    body { padding: 12px; }
+    body { padding: 56px 12px 28px; }
     .console-wrap { padding: 12px; }
     .profile-dock { padding: 18px; }
     .dock-body .card-image { width: 80px; height: 96px; margin-right: 16px; }
