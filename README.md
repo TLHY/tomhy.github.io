@@ -79,12 +79,15 @@ Open `haptic-lab.html`, or click Mochi and choose **Research Game**. The English
 HP, cards, upgrades, and relics persist between encounters. Runs save in browser storage when available. On mobile, swipe the hand horizontally. Mochi shares artwork with the homepage companion and has idle, attack, block, hit, healing, and victory animations. Game rules are inspired by haptics research, not a simulation of real perceptual responses. No audio or device vibration is used.
 
 - `assets/js/haptic-run-engine.js`: deterministic rules, cards, encounters, routes, and save validation.
-- `assets/js/haptic-paper-cards.js`: field/Neutral source metadata and explicit evidence labels.
-- `assets/js/haptic-deck-themes.js`: 80 rebalanced field cards and their deck-specific concept mappings.
+- `assets/js/haptic-paper-cards.js`: paper source metadata and explicit evidence labels.
+- `assets/js/haptic-deck-themes.js`: 80 field cards and explicit paper-to-game mappings.
+- `assets/js/haptic-paper-protocols.js`: 40 distinctive conditional/staged special-card protocols and persistent state.
 - `assets/js/haptic-run.js` and `assets/css/haptic-run.css`: game interface and monster artwork.
 - `assets/js/mochi-art.js`: artwork shared by the companion and research-game hero.
 
-Relics now represent haptic devices, with fictional game bonuses. **Research cards** opens the concept references, upgrades, and four basic-card catalogs. Each field now has ten special cards based on the supplied paper summaries, plus four Neutral cards based on existing profile publications. Linked abstracts and the full HCI Tech Lab publication list still require verification; the library labels the evidence basis. See [research-card design and evidence requirements](docs/research-card-design.md).
+Specials now have distinct protocols: stored/replayed waveforms, hidden/referred Heat, six-site circuits, selectable thermal routes/materials, order/partner-dependent fusion, reusable components, and staged/event-driven turret programs. Choice windows commit no resources until confirmed, and pending effects survive reload.
+
+Relics now represent haptic devices, with fictional game bonuses. **Research cards** opens the concept references, upgrades, and four basic-card catalogs. Each field now has ten special cards based on the supplied paper summaries, Neutral cards have been removed. Existing saved Neutral cards are replaced with matching starter basics when loaded. Linked abstracts and the full HCI Tech Lab publication list still require verification; the library labels the evidence basis. See [research-card design and evidence requirements](docs/research-card-design.md).
 
 ## Writing Game — Draft After Dark
 
