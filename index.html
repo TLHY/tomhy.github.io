@@ -7,10 +7,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=VT323&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles.css?v=20260929-16">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20261104-3">
+    <link rel="stylesheet" href="assets/css/readability.css?v=20261104-3">
+    <link rel="stylesheet" href="assets/css/slime-companion.css?v=20261104-3">
 </head>
 <body>
     <main class="console-wrap">
+        <section class="profile-dock" aria-label="Profile quick view">
+            <div class="dock-chip-row">
+                <span class="badge" id="dock-profile-badge">Profile</span>
+            </div>
+            <div id="dock-profile-card" class="dock-body">
+                <p class="loading">Loading profile snapshot...</p>
+            </div>
+            <div id="dock-profile-links" class="dock-links" aria-label="Profile links"></div>
+        </section>
+
         <nav class="tab-bar" aria-label="Profile sections">
             <button class="pak-tab active" type="button" data-panel="home">Home</button>
             <button class="pak-tab" type="button" data-panel="profile">Profile</button>
@@ -61,7 +73,7 @@
                 </section>
             </section>
 
-            <aside class="top-right-stack" aria-label="Meta and profile quick view">
+            <aside class="top-right-stack" aria-label="Haptic Workshop game">
                 <section class="hero-screen hero-right">
                     <div class="boot-row">
                         <span><span class="led"></span><span id="player-label">player 1</span></span>
@@ -76,15 +88,7 @@
                     </div>
                 </section>
 
-                <section class="profile-dock" aria-label="Profile quick view">
-                    <div class="dock-chip-row">
-                        <span class="badge" id="dock-profile-badge">Profile</span>
-                    </div>
-                    <div id="dock-profile-card" class="dock-body">
-                        <p class="loading">Loading profile snapshot...</p>
-                    </div>
-                    <div id="dock-profile-links" class="dock-links" aria-label="Profile links"></div>
-                </section>
+
             </aside>
         </div>
 
@@ -92,6 +96,8 @@
             <span id="footer-hint">Press L/R (arrow keys) to switch game paks</span>
         </div>
     </main>
-    <script src="assets/js/app.js?v=20260929-16"></script>
+    <script src="assets/js/pulse-course.js?v=20261104-3"></script>
+    <script src="assets/js/app.js?v=20261104-3"></script>
+    <script src="assets/js/slime-companion.js?v=20261104-3"></script>
 </body>
 </html>

@@ -70,6 +70,7 @@ function createContentImage(src, alt, cssClass) {
 }
 
 function setActivePanel(targetId) {
+    slimeEngine?.pause?.();
     tabs.forEach((tab) => {
         tab.classList.toggle("active", tab.dataset.panel === targetId);
     });
@@ -949,21 +950,22 @@ function initHapticTycoon(meta = {}) {
             customer: "Clear the haptic pattern without hitting an obstacle"
         }
     ];
-    const runnerPatterns = [
-        { name: "STEADY", obstacles: [1.4, 2.6, 3.8, 5, 6.2, 7.4, 8.6] },
-        { name: "DOUBLE", obstacles: [1.3, 2.1, 3.5, 4.3, 5.7, 6.5, 7.9, 8.7] },
-        { name: "SYNCOPATED", obstacles: [1.2, 2.3, 3.1, 4.4, 5.5, 6.3, 7.7, 8.5] }
-    ];
+    const runnerPatterns = PulseCourse.patterns;
     const positions = [25, 50, 75];
     const strengths = [60, 80, 120];
     const positionNames = { 25: "LEFT", 50: "CENTER", 75: "RIGHT" };
     const strengthNames = { 60: "SOFT", 80: "MEDIUM", 120: "STRONG" };
+    function readBestScore() {
+        try { return Math.max(0, Number(localStorage.getItem(SAVE_KEY)) || 0); }
+        catch { return 0; }
+    }
+
     const state = {
         coins: 0,
         streak: 0,
         served: 0,
         missed: 0,
-        highScore: Number(localStorage.getItem(SAVE_KEY)) || 0,
+        highScore: readBestScore(),
         nickname: "",
         mode: "thermal",
         left: 60,
@@ -973,7 +975,9 @@ function initHapticTycoon(meta = {}) {
         deadline: 0,
         started: false,
         locked: false,
-        timerId: 0
+        timerId: 0,
+        paused: false,
+        pausedAt: 0
     };
 
     function element(tag, className, text) {
@@ -993,6 +997,17 @@ function initHapticTycoon(meta = {}) {
     const highText = element("span", "haptic-high");
     scoreboard.append(coinsText, streakText, highText);
 
+    const toolbar = element("div", "haptic-toolbar");
+    const phase = element("span", "haptic-phase", "HOW TO PLAY");
+    const pauseButton = element("button", "haptic-pause", "Pause");
+    pauseButton.type = "button";
+    pauseButton.hidden = true;
+    pauseButton.setAttribute("aria-pressed", "false");
+    toolbar.append(phase, pauseButton);
+    const help = element("p", "haptic-help");
+    help.id = "haptic-help";
+    playground.tabIndex = 0;
+    playground.setAttribute("aria-describedby", help.id);
     const orderCard = element("section", "haptic-order");
     orderCard.setAttribute("aria-label", "Current customer order");
     const orderTop = element("div", "haptic-order-top");
@@ -1015,6 +1030,7 @@ function initHapticTycoon(meta = {}) {
     const modeSpec = createOrderSpec("SENSATION");
     const positionSpec = createOrderSpec("POSITION");
     const strengthSpec = createOrderSpec("INTENSITY");
+    const gapSpec = createOrderSpec("PULSE GAP");
     orderCard.append(orderTop, recipeName, request, orderSpecs);
 
     const sensationStage = element("div", "haptic-stage");
@@ -1035,6 +1051,11 @@ function initHapticTycoon(meta = {}) {
     runnerPlayer.setAttribute("aria-label", "Runner");
     const runnerFinish = element("span", "haptic-runner-finish", "END");
     runnerTrack.append(runnerGrid, runnerPlayer, runnerFinish);
+    const runnerProgress = element("progress", "haptic-runner-progress");
+    runnerProgress.max = 100;
+    runnerProgress.value = 0;
+    runnerProgress.hidden = true;
+    runnerProgress.setAttribute("aria-label", "Course progress");
 
     outputMarker.addEventListener("animationend", (event) => {
         if (event.animationName === "haptic-pop") {
@@ -1050,7 +1071,7 @@ function initHapticTycoon(meta = {}) {
     const stageCaption = element("div", "haptic-stage-caption");
     const stageLegend = element("span", "haptic-stage-legend", "TARGET / OUTPUT");
     stageCaption.appendChild(stageLegend);
-    sensationStage.append(arm, runnerTrack, stageCaption);
+    sensationStage.append(arm, runnerTrack, runnerProgress, stageCaption);
 
     const station = element("section", "haptic-station");
     const modeControl = element("div", "haptic-mode-control");
@@ -1121,7 +1142,7 @@ function initHapticTycoon(meta = {}) {
     thermalPumpActions.append(ventButton, pumpButton);
     thermalPump.append(thermalPumpHead, thermalGauge, thermalPumpActions);
     thermalControls.append(thermalPlacement, thermalPump);
-    const jumpButton = element("button", "haptic-jump", "JUMP");
+    const jumpButton = element("button", "haptic-jump", "TAP / HOLD TO JUMP");
     jumpButton.type = "button";
     jumpButton.hidden = true;
     jumpButton.disabled = true;
@@ -1134,16 +1155,15 @@ function initHapticTycoon(meta = {}) {
     const startScreen = element("section", "haptic-start-screen");
     const startEyebrow = element("span", "haptic-start-eyebrow", "SELF-SERVICE LAB");
     const startTitle = element("strong", "haptic-start-title", "HAPTIC ORDER KIOSK");
-    const startCopy = element("p", "haptic-start-copy", "Read each customer ticket, configure the sensation, then submit the order before pickup time.");
+    const startCopy = element("p", "haptic-start-copy", "Match the position and heat, tune a vibration, or jump through a pulse course. Start with a thermal order; each ticket explains what to do.");
     const nicknameField = element("label", "haptic-nickname-field");
     const nicknameLabel = element("span", "haptic-nickname-label", "NICKNAME");
     const nicknameInput = element("input", "haptic-nickname-input");
     nicknameInput.type = "text";
     nicknameInput.maxLength = 12;
-    nicknameInput.placeholder = "ENTER NAME";
     nicknameInput.autocomplete = "nickname";
     nicknameInput.spellcheck = false;
-    nicknameInput.required = true;
+    nicknameInput.placeholder = "Name (optional)";
     nicknameField.append(nicknameLabel, nicknameInput);
     const rankings = element("section", "haptic-rankings");
     rankings.setAttribute("aria-label", "Local best streak rankings");
@@ -1153,7 +1173,68 @@ function initHapticTycoon(meta = {}) {
     const startButton = element("button", "haptic-start-button", "OPEN KIOSK");
     startButton.type = "button";
     startScreen.append(startEyebrow, startTitle, startCopy, nicknameField, rankings, startButton);
-    gameLayer.append(scoreboard, orderCard, sensationStage, station, startScreen);
+    const nextButton = element("button", "haptic-next", "Next order →");
+    nextButton.type = "button";
+    nextButton.hidden = true;
+    station.appendChild(nextButton);
+    gameLayer.append(toolbar, scoreboard, help, orderCard, sensationStage, station, startScreen);
+    let pendingAction = null;
+
+    function stopClock() {
+        window.clearInterval(state.timerId);
+        state.timerId = 0;
+    }
+
+    function startClock() {
+        stopClock();
+        state.timerId = window.setInterval(tick, 100);
+    }
+
+    function setPaused(paused) {
+        if (!state.started || state.locked || state.paused === paused) return;
+        state.paused = paused;
+        pauseButton.textContent = paused ? "Resume" : "Pause";
+        pauseButton.setAttribute("aria-pressed", String(paused));
+        gameLayer.classList.toggle("is-paused", paused);
+        orderCard.inert = paused;
+        sensationStage.inert = paused;
+        station.inert = paused;
+        if (paused) {
+            state.pausedAt = performance.now();
+            stopClock();
+            stopSyncIndicators();
+            runner.heldInputs.clear();
+            cancelAnimationFrame(runner.rafId);
+            phase.textContent = "PAUSED · Resume when ready";
+        } else {
+            const now = performance.now();
+            state.deadline += now - state.pausedAt;
+            if (runner.active) {
+                runner.startTime += now - state.pausedAt;
+                runner.lastTime = now;
+                runner.rafId = requestAnimationFrame(updateRunner);
+            } else if (state.order.mode === "vibro") startSyncIndicators();
+            phase.textContent = "MATCH THE TICKET";
+            startClock();
+        }
+    }
+
+    function onVisibilityChange() {
+        if (document.hidden) setPaused(true);
+    }
+    const visibilityObserver = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) setPaused(true);
+    });
+    visibilityObserver.observe(playground);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    pauseButton.addEventListener("click", () => setPaused(!state.paused));
+    nextButton.addEventListener("click", () => {
+        const action = pendingAction;
+        pendingAction = null;
+        nextButton.hidden = true;
+        if (action) action();
+        playground.focus({ preventScroll: true });
+    });
 
     const controlMap = {
         left: leftControl,
@@ -1166,13 +1247,16 @@ function initHapticTycoon(meta = {}) {
     const runner = {
         active: false,
         rafId: 0,
-        retryTimeoutId: 0,
         startTime: 0,
         lastTime: 0,
         y: 0,
         velocity: 0,
         obstacles: [],
-        lives: 3
+        lives: 3,
+        heldInputs: new Set(),
+        holdTime: 0,
+        elapsed: 0,
+        accumulator: 0
     };
     const thermalGame = {
         position: 50,
@@ -1355,13 +1439,13 @@ function initHapticTycoon(meta = {}) {
     function stopRunner() {
         runner.active = false;
         cancelAnimationFrame(runner.rafId);
-        window.clearTimeout(runner.retryTimeoutId);
         runner.rafId = 0;
-        runner.retryTimeoutId = 0;
         runner.obstacles.forEach((obstacle) => obstacle.element.remove());
         runner.obstacles = [];
         runner.y = 0;
         runner.velocity = 0;
+        runner.heldInputs.clear();
+        runnerPlayer.style.setProperty("--runner-turn", "0deg");
         runnerPlayer.style.transform = "translateY(0)";
         runnerPlayer.classList.remove("is-jumping", "is-crashed");
     }
@@ -1379,7 +1463,7 @@ function initHapticTycoon(meta = {}) {
             state.streak += 1;
             state.served += 1;
             state.highScore = Math.max(state.highScore, state.coins);
-            localStorage.setItem(SAVE_KEY, String(state.highScore));
+            try { localStorage.setItem(SAVE_KEY, String(state.highScore)); } catch { /* Storage is optional. */ }
             recordRanking();
             updateScoreboard();
             finishOrder(`COURSE CLEARED | +${earned} COINS`, true);
@@ -1391,19 +1475,25 @@ function initHapticTycoon(meta = {}) {
 
             if (runner.lives > 0) {
                 state.locked = true;
-                feedback.textContent = `HIT | ${runner.lives} ${runner.lives === 1 ? "LIFE" : "LIVES"} LEFT`;
+                feedback.textContent += ` · ${runner.lives} ${runner.lives === 1 ? "life" : "lives"} left`;
                 feedback.className = "haptic-feedback is-hit";
-                runner.retryTimeoutId = window.setTimeout(() => {
-                    runner.retryTimeoutId = 0;
+                stopClock();
+                pauseButton.hidden = true;
+                phase.textContent = "TRY AGAIN WHEN READY";
+                nextButton.textContent = "Retry course →";
+                nextButton.hidden = false;
+                pendingAction = () => {
                     state.locked = false;
+                    pauseButton.hidden = false;
                     state.deadline = performance.now() + RUNNER_SECONDS * 1000;
-                    timer.textContent = `${RUNNER_SECONDS.toFixed(1)}s`;
                     timer.classList.remove("is-urgent");
                     jumpButton.disabled = false;
-                    feedback.textContent = "TRY AGAIN";
+                    feedback.textContent = "Jump over each obstacle";
                     feedback.className = "haptic-feedback";
+                    phase.textContent = "MATCH THE TICKET";
                     startRunner(state.order.pattern);
-                }, 900);
+                    startClock();
+                };
             } else {
                 state.streak = 0;
                 state.missed += 1;
@@ -1414,56 +1504,51 @@ function initHapticTycoon(meta = {}) {
     }
 
     function jumpRunner() {
-        if (!runner.active || runner.y > 1) {
-            return;
-        }
-        runner.velocity = 330;
+        if (!runner.active || state.paused || state.locked || runner.y > 0) return;
+        runner.velocity = 300;
+        runner.holdTime = 0;
         runnerPlayer.classList.add("is-jumping");
-        if (navigator.vibrate) {
-            navigator.vibrate(25);
-        }
+        if (navigator.vibrate) navigator.vibrate(18);
+    }
+
+    function pressJump(input) {
+        if (!runner.active || state.paused || state.locked) return;
+        runner.heldInputs.add(input);
+        jumpRunner();
     }
 
     function updateRunner(now) {
-        if (!runner.active) {
-            return;
-        }
-
-        const elapsed = (now - runner.startTime) / 1000;
-        const dt = Math.min((now - runner.lastTime) / 1000, 0.04);
+        if (!runner.active || state.paused) return;
+        runner.accumulator += Math.min((now - runner.lastTime) / 1000, 0.1);
         runner.lastTime = now;
-        runner.velocity -= 880 * dt;
-        runner.y = Math.max(0, runner.y + runner.velocity * dt);
-        if (runner.y === 0) {
-            runner.velocity = 0;
-            runnerPlayer.classList.remove("is-jumping");
+        while (runner.accumulator >= PulseCourse.step) {
+            runner.accumulator -= PulseCourse.step;
+            runner.elapsed += PulseCourse.step;
+            PulseCourse.advance(runner, runner.heldInputs.size > 0);
+            const hit = runner.obstacles.find((obstacle) => PulseCourse.collides(runner, obstacle, runner.elapsed));
+            if (hit) {
+                feedback.textContent = hit.kind === "ceiling" ? "Ceiling hit — use a short tap here" : "Spike hit — hold longer for tall or paired spikes";
+                finishRunner(false);
+                return;
+            }
         }
+        runnerPlayer.classList.toggle("is-jumping", runner.y > 0);
         runnerPlayer.style.transform = `translateY(${-runner.y}px)`;
-
-        const width = runnerTrack.clientWidth;
-        const playerX = 28;
-        const playerWidth = 18;
-        const obstacleWidth = 14;
-        const speed = Math.max(120, (width - playerX) / 1.4);
-        let collision = false;
+        runnerPlayer.style.setProperty("--runner-turn", `${runner.y > 0 ? Math.min(90, runner.holdTime * 180) : 0}deg`);
         runner.obstacles.forEach((obstacle) => {
-            const x = playerX + (obstacle.time - elapsed) * speed;
+            const x = 28 + (obstacle.time - runner.elapsed) * PulseCourse.speed;
             obstacle.element.style.transform = `translateX(${x}px)`;
-            if (!obstacle.passed && x + obstacleWidth < playerX) {
+            if (!obstacle.passed && x + obstacle.width < 28) {
                 obstacle.passed = true;
                 obstacle.element.classList.add("is-passed");
             }
-            if (!obstacle.passed && x < playerX + playerWidth && x + obstacleWidth > playerX && runner.y < 24) {
-                collision = true;
-            }
         });
-
-        runnerFinish.style.transform = `translateX(${playerX + (RUNNER_SECONDS - elapsed) * speed}px)`;
-        if (collision) {
-            finishRunner(false);
-            return;
-        }
-        if (elapsed >= RUNNER_SECONDS) {
+        runnerGrid.style.transform = `translateX(${-((runner.elapsed * PulseCourse.speed) % 32)}px)`;
+        runnerFinish.style.transform = `translateX(${28 + (RUNNER_SECONDS - runner.elapsed) * PulseCourse.speed}px)`;
+        timer.textContent = `${Math.max(0, RUNNER_SECONDS - runner.elapsed).toFixed(1)}s`;
+        timer.classList.toggle("is-urgent", runner.elapsed > RUNNER_SECONDS - 3);
+        runnerProgress.value = Math.min(100, runner.elapsed / RUNNER_SECONDS * 100);
+        if (runner.elapsed >= RUNNER_SECONDS) {
             finishRunner(true);
             return;
         }
@@ -1472,10 +1557,18 @@ function initHapticTycoon(meta = {}) {
 
     function startRunner(pattern) {
         stopRunner();
-        runner.obstacles = pattern.obstacles.map((time) => {
-            const obstacle = element("span", "haptic-runner-obstacle");
+        runner.elapsed = 0;
+        runner.accumulator = 0;
+        runnerProgress.value = 0;
+        runner.obstacles = pattern.obstacles.map((definition) => {
+            const obstacle = element("span", `haptic-runner-obstacle is-${definition.kind}`);
+            obstacle.style.width = `${definition.width}px`;
+            obstacle.style.height = `${definition.height}px`;
+            obstacle.style.bottom = `${10 + definition.bottom}px`;
+            obstacle.style.transform = `translateX(${28 + definition.time * PulseCourse.speed}px)`;
+            obstacle.setAttribute("aria-hidden", "true");
             runnerTrack.appendChild(obstacle);
-            return { element: obstacle, time, passed: false };
+            return { ...definition, element: obstacle, passed: false };
         });
         runner.active = true;
         runner.startTime = performance.now();
@@ -1532,7 +1625,7 @@ function initHapticTycoon(meta = {}) {
         outputMarker.classList.remove("is-rendering");
         wave.classList.remove("is-rendering");
         const availableRecipes = recipes.filter((candidate) => candidate.mode !== lastOrderMode);
-        const recipe = availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
+        const recipe = state.served + state.missed === 0 ? recipes[0] : availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
         const isRunnerOrder = recipe.mode === "runner";
         const isPhantomOrder = recipe.mode === "vibro";
         const isThermalOrder = recipe.mode === "thermal";
@@ -1548,6 +1641,17 @@ function initHapticTycoon(meta = {}) {
         const orderSeconds = isRunnerOrder ? RUNNER_SECONDS : ORDER_SECONDS;
         state.deadline = performance.now() + orderSeconds * 1000;
         state.locked = false;
+        nextButton.hidden = true;
+        pauseButton.hidden = false;
+        phase.textContent = "MATCH THE TICKET";
+        modeControl.hidden = true;
+        gapSpec.value.parentElement.hidden = !isPhantomOrder;
+        gapSpec.value.textContent = `${state.order.delay}ms`;
+        help.textContent = isRunnerOrder
+            ? "Tap for a short jump; hold for a high jump over stacked or paired spikes. Stay low under ceiling spikes. Use JUMP, Space or ↑. Three lives."
+            : isThermalOrder
+                ? "1. Choose the ticket’s position. 2. Pump heat to the marked level (VENT lowers it). 3. Submit."
+                : "Match position with the A/B balance, intensity with A + B, and PULSE GAP with the ticket. Then submit.";
         customer.textContent = `ORDER #${String(state.served + state.missed + 1).padStart(2, "0")}`;
         recipeName.textContent = state.order.name;
         request.textContent = state.order.customer;
@@ -1574,9 +1678,10 @@ function initHapticTycoon(meta = {}) {
         thermalControls.hidden = !isThermalOrder;
         arm.hidden = isRunnerOrder;
         runnerTrack.hidden = !isRunnerOrder;
+        runnerProgress.hidden = !isRunnerOrder;
         jumpButton.hidden = !isRunnerOrder;
         jumpButton.disabled = !isRunnerOrder;
-        stageLegend.textContent = isRunnerOrder ? "READ THE PATTERN / JUMP" : "TARGET / OUTPUT";
+        stageLegend.textContent = isRunnerOrder ? "TAP = LOW · HOLD = HIGH" : "TARGET / OUTPUT";
         feedback.textContent = "BUILD THE REQUEST";
         feedback.className = "haptic-feedback";
         renderButton.disabled = isRunnerOrder;
@@ -1592,8 +1697,13 @@ function initHapticTycoon(meta = {}) {
             if (isPhantomOrder) {
                 setMode("vibro");
             }
+            state.left = 40;
+            state.right = 40;
+            state.delay = 0;
+            updateOutput();
             startSyncIndicators();
         }
+        startClock();
     }
 
     function startGame() {
@@ -1601,14 +1711,7 @@ function initHapticTycoon(meta = {}) {
             return;
         }
 
-        const nickname = normalizeNickname(nicknameInput.value);
-        if (!nickname) {
-            nicknameInput.setCustomValidity("Enter a nickname to join the ranking.");
-            nicknameInput.reportValidity();
-            nicknameInput.focus();
-            return;
-        }
-
+        const nickname = normalizeNickname(nicknameInput.value) || "Guest";
         nicknameInput.setCustomValidity("");
         nicknameInput.value = nickname;
         state.nickname = nickname;
@@ -1617,6 +1720,7 @@ function initHapticTycoon(meta = {}) {
         startScreen.hidden = true;
         gameLayer.classList.add("is-playing");
         nextOrder();
+        playground.focus({ preventScroll: true });
     }
 
     function finishOrder(message, success) {
@@ -1628,7 +1732,13 @@ function initHapticTycoon(meta = {}) {
         renderButton.disabled = true;
         feedback.textContent = message;
         feedback.className = `haptic-feedback ${success ? "is-success" : "is-fail"}`;
-        window.setTimeout(nextOrder, 1400);
+        stopClock();
+        pauseButton.hidden = true;
+        phase.textContent = success ? "ORDER COMPLETE" : "ORDER FINISHED";
+        nextButton.textContent = "Next order →";
+        nextButton.hidden = false;
+        pendingAction = nextOrder;
+        nextButton.focus({ preventScroll: true });
     }
 
     function renderSensation() {
@@ -1660,28 +1770,25 @@ function initHapticTycoon(meta = {}) {
             state.streak += 1;
             state.served += 1;
             state.highScore = Math.max(state.highScore, state.coins);
-            localStorage.setItem(SAVE_KEY, String(state.highScore));
+            try { localStorage.setItem(SAVE_KEY, String(state.highScore)); } catch { /* Storage is optional. */ }
             recordRanking();
             sensationStage.classList.add("is-success");
             finishOrder(`RENDERING SUCCESSFUL | ${accuracy}% MATCH | +${earned} COINS`, true);
         } else {
             state.streak = 0;
             state.missed += 1;
-            finishOrder(`RENDERING FAILED | ${accuracy}% MATCH`, false);
+            finishOrder(`TRY AGAIN | ${accuracy}% MATCH. Position ${Math.round(outputPosition())}% / target ${state.order.position}%; intensity ${Math.round(state.left + state.right)} / ${state.order.strength}; gap ${state.delay} / ${state.order.delay}ms.`, false);
         }
         updateScoreboard();
     }
 
     function tick() {
-        if (state.started && !state.locked && state.order) {
+        if (state.started && !state.paused && !state.locked && state.order) {
+            if (state.order.mode === "runner") return;
             const remaining = Math.max(0, state.deadline - performance.now());
             timer.textContent = `${(remaining / 1000).toFixed(1)}s`;
             timer.classList.toggle("is-urgent", remaining < 6000);
             if (remaining === 0) {
-                if (state.order.mode === "runner") {
-                    finishRunner(true);
-                    return;
-                }
                 state.streak = 0;
                 state.missed += 1;
                 updateScoreboard();
@@ -1705,15 +1812,29 @@ function initHapticTycoon(meta = {}) {
 
     Object.entries(controlMap).forEach(([key, control]) => {
         control.decreaseButton.addEventListener("click", () => {
+            if (state.locked || state.paused) return;
             state[key] = Math.max(control.min, state[key] - control.step);
             updateOutput();
         });
         control.increaseButton.addEventListener("click", () => {
+            if (state.locked || state.paused) return;
             state[key] = Math.min(control.max, state[key] + control.step);
             updateOutput();
         });
     });
-    jumpButton.addEventListener("click", jumpRunner);
+    jumpButton.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        jumpButton.focus({ preventScroll: true });
+        jumpButton.setPointerCapture(event.pointerId);
+        pressJump(`pointer-${event.pointerId}`);
+    });
+    const releasePointer = (event) => runner.heldInputs.delete(`pointer-${event.pointerId}`);
+    jumpButton.addEventListener("pointerup", releasePointer);
+    jumpButton.addEventListener("pointercancel", releasePointer);
+    jumpButton.addEventListener("lostpointercapture", releasePointer);
+    // Assistive technology may activate buttons without pointer/key events.
+    jumpButton.addEventListener("click", (event) => { if (event.detail === 0 && !runner.heldInputs.size) jumpRunner(); });
     renderButton.addEventListener("click", renderSensation);
     startButton.addEventListener("click", startGame);
     nicknameInput.addEventListener("input", () => nicknameInput.setCustomValidity(""));
@@ -1724,9 +1845,18 @@ function initHapticTycoon(meta = {}) {
     });
 
     function handleGameKeydown(event) {
+        if (!playground.contains(event.target) || event.target.closest("input, textarea, select") || event.target.isContentEditable) return;
+        if (event.code === "ArrowLeft" || event.code === "ArrowRight") event.stopPropagation();
+        if (state.paused || state.locked) return;
         if (runner.active && (event.code === "Space" || event.code === "ArrowUp")) {
             event.preventDefault();
-            jumpRunner();
+            if (event.repeat) return;
+            pressJump(event.code);
+        }
+        if (runner.active && event.code === "Enter" && event.target === jumpButton) {
+            event.preventDefault();
+            if (event.repeat) return;
+            pressJump(event.code);
         }
         if (state.started && !state.locked && state.order?.mode === "thermal" && (event.code === "ArrowLeft" || event.code === "ArrowRight")) {
             event.preventDefault();
@@ -1734,7 +1864,11 @@ function initHapticTycoon(meta = {}) {
         }
     }
 
-    window.addEventListener("keydown", handleGameKeydown);
+    function releaseGameKey(event) { runner.heldInputs.delete(event.code); }
+    function onWindowBlur() { setPaused(true); }
+    window.addEventListener("keyup", releaseGameKey);
+    window.addEventListener("blur", onWindowBlur);
+    playground.addEventListener("keydown", handleGameKeydown);
 
     try {
         nicknameInput.value = normalizeNickname(localStorage.getItem(NICKNAME_KEY));
@@ -1751,12 +1885,18 @@ function initHapticTycoon(meta = {}) {
     request.textContent = "Open the kiosk to receive a customer ticket.";
     targetMarker.style.opacity = "0";
     renderButton.disabled = true;
-    state.timerId = window.setInterval(tick, 100);
+    // No timers run while the kiosk is closed.
 
     slimeEngine = {
+        pause() { setPaused(true); },
         stop() {
             window.clearInterval(state.timerId);
-            window.removeEventListener("keydown", handleGameKeydown);
+            playground.removeEventListener("keydown", handleGameKeydown);
+            window.removeEventListener("keyup", releaseGameKey);
+            window.removeEventListener("blur", onWindowBlur);
+            document.removeEventListener("visibilitychange", onVisibilityChange);
+            visibilityObserver.disconnect();
+            pendingAction = null;
             stopRunner();
             stopSyncIndicators();
             stopThermalGame();
@@ -2029,7 +2169,7 @@ function fillProfileDock(data = {}) {
         linkedin.rel = "noopener noreferrer";
         linkedin.ariaLabel = "LinkedIn";
         linkedin.title = "LinkedIn";
-        linkedin.textContent = "in";
+        linkedin.textContent = "LinkedIn";
         linksContainer.appendChild(linkedin);
     }
 
@@ -2040,7 +2180,7 @@ function fillProfileDock(data = {}) {
         email.href = emailValue.startsWith("mailto:") ? emailValue : `mailto:${emailValue}`;
         email.ariaLabel = "Email";
         email.title = "Email";
-        email.textContent = "@";
+        email.textContent = emailValue.replace(/^mailto:/, "");
         linksContainer.appendChild(email);
     }
 }
@@ -2105,6 +2245,7 @@ tabs.forEach((tab) => {
 });
 
 document.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented || event.target.closest("#meta-playground, input, textarea, select, [contenteditable]")) return;
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
         return;
     }

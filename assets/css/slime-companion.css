@@ -1,0 +1,90 @@
+.slime-companion { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
+.fluffy-pet { position: absolute; top: 0; left: 0; width: 64px; height: 58px; padding: 0; border: 0; background: none; cursor: grab; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; will-change: transform; }
+.fluffy-shadow { position: absolute; bottom: 2px; left: 7px; width: 50px; height: 5px; border-radius: 50%; background: #52643428; }
+.fluffy-body { position: absolute; inset: 0 0 5px; transform-origin: center bottom; animation: fluffy-breathe 2.8s ease-in-out infinite; }
+.mochi-art { display: block; width: 100%; height: 100%; overflow: visible; pointer-events: none; filter: drop-shadow(0 1px 0 #fff9); }
+.mochi-eye { transform-box: fill-box; transform-origin: center; transition: transform 90ms; }
+.mochi-happy-eyes { display: none; }
+.fluffy-pet.is-blinking .mochi-eye, .fluffy-pet.is-sleeping .mochi-eye { transform: scaleY(.12); }
+.fluffy-pet.is-happy .mochi-eyes { opacity: 0; }
+.fluffy-pet.is-happy .mochi-happy-eyes { display: inline; }
+.mochi-bubble { transform-box: fill-box; transform-origin: center; animation: mochi-bubble-float 3.6s ease-in-out infinite; }
+.bubble-left { animation-delay: -1.7s; }
+@keyframes mochi-bubble-float { 50% { transform: translateY(-2px); } }
+.fluffy-emote { position: absolute; top: -17px; left: 20px; color: #60773d; font: 700 20px/1.3 "Segoe UI", sans-serif; text-shadow: 0 1px 2px #fff; white-space: nowrap; pointer-events: none; }
+.fluffy-pet.is-carried { cursor: grabbing; }
+
+.fluffy-pet.is-carried .fluffy-shadow { opacity: 0; }
+
+
+.slime-care { position: fixed; pointer-events: auto; z-index: 41; max-height: calc(100dvh - 24px); overflow-y: auto; border: 2px solid #52633c; background: #fbfff5; color: #303c25; padding: 16px; box-shadow: 4px 4px 0 #a6b88f; border-radius: 12px; font: 15px/1.5 "Source Sans 3", "Segoe UI", sans-serif; }
+.slime-care[hidden] { display: none; }
+.slime-care-heading { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.slime-care-heading strong { font-size: 20px; }
+.slime-care-heading strong span { display: block; font-size: 12px; font-weight: 400; color: #62734f; }
+.slime-care button { min-height: 44px; border: 1px solid #98ac7b; background: #eaf3dc; color: #40532b; border-radius: 7px; font: 600 15px/1.4 "Segoe UI", sans-serif; cursor: pointer; }
+.slime-care-close { min-width: 44px; font-size: 22px !important; }
+.slime-care-message { min-height: 45px; margin: 12px 0; }
+.slime-needs { display: grid; gap: 7px; }
+.slime-need { display: grid; grid-template-columns: 86px 1fr; align-items: center; gap: 10px; font-size: 13px; }
+.slime-need meter { width: 100%; height: 14px; accent-color: #97b76b; }
+.slime-care-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+.slime-care-hint { font-size: 12px; color: #62734f; margin-bottom: 0; }
+@keyframes fluffy-breathe { 50% { transform: scale(1.035, .95); } }
+@keyframes fluffy-bounce { 50% { transform: translateY(-20px) scale(.94, 1.08); } }
+@media (prefers-reduced-motion: reduce) { .fluffy-body, .fluffy-pet.is-playing .fluffy-body { animation: none; } .mochi-eye { transition: none; } .mochi-bubble { animation: none; } }
+
+.slime-need meter::-webkit-meter-bar { background: #e8efdf; border: 0; border-radius: 6px; }
+.slime-need meter::-webkit-meter-optimum-value { background: #97b76b; border-radius: 6px; }
+.slime-need meter::-moz-meter-bar { background: #97b76b; border-radius: 6px; }
+
+/* Motion stays inside the button, so the border anchor and drag target stay stable. */
+.fluffy-body { transition: rotate 140ms ease-out; }
+.fluffy-pet[data-facing="right"] .mochi-art { transform: scaleX(-1); }
+.fluffy-pet[data-facing="left"] .mochi-art { transform: scaleX(1); }
+.fluffy-pet[data-motion="idle"] .fluffy-body { animation: mochi-idle 3.2s ease-in-out infinite; }
+.fluffy-pet[data-motion="idle"] .mochi-eyes { animation: mochi-curious 7s ease-in-out infinite; }
+.fluffy-pet[data-motion="walking"] .fluffy-body { animation: mochi-walk 650ms ease-in-out infinite; }
+.fluffy-pet[data-motion="walking"] .fluffy-shadow { animation: mochi-step-shadow 650ms ease-in-out infinite; }
+.fluffy-pet[data-motion="walking"] .mochi-bubble { animation-duration: 950ms; }
+.fluffy-pet[data-motion="carried"] .fluffy-body {
+    transform-origin: 50% 25%;
+    rotate: var(--carry-angle, 0deg);
+    animation: mochi-dangle 900ms ease-in-out infinite;
+}
+.fluffy-pet[data-motion="carried"] .mochi-bubble { animation: mochi-carried-bubble 900ms ease-in-out infinite alternate; }
+.fluffy-pet[data-motion="airborne"] .fluffy-body { animation: none; transform: scale(.92, 1.08); }
+.fluffy-pet[data-motion="airborne"] .fluffy-shadow { opacity: .25; transform: scaleX(.7); }
+.fluffy-pet[data-motion="landing"] .fluffy-body { animation: mochi-land 360ms ease-out both; }
+.fluffy-pet[data-motion="playing"] .fluffy-body { animation: fluffy-bounce .45s ease-in-out infinite; }
+.fluffy-pet[data-motion="sleeping"] .fluffy-body { animation: mochi-sleep 4s ease-in-out infinite; }
+@keyframes mochi-idle {
+    0%, 100% { transform: scale(1, 1); }
+    45% { transform: scale(1.035, .95) rotate(-1deg); }
+    70% { transform: scale(.985, 1.025) rotate(1deg); }
+}
+@keyframes mochi-curious {
+    0%, 35%, 100% { translate: 0 0; }
+    45%, 55% { translate: -2px -1px; }
+    70%, 80% { translate: 2px 0; }
+}
+@keyframes mochi-walk {
+    0%, 100% { transform: scale(1.07, .9) skewX(var(--walk-lean)); }
+    35% { transform: translateY(-3px) scale(.94, 1.08) rotate(var(--walk-lean)); }
+    65% { transform: translateY(-1px) scale(1.02, .96); }
+}
+@keyframes mochi-step-shadow { 0%, 100% { transform: scaleX(1.08); opacity: 1; } 40% { transform: scaleX(.8); opacity: .6; } }
+@keyframes mochi-dangle {
+    0%, 100% { transform: scale(.88, var(--carry-stretch, 1.12)) rotate(-3deg); }
+    50% { transform: scale(.93, 1.08) rotate(3deg); }
+}
+@keyframes mochi-carried-bubble { to { transform: translateY(-4px) scale(.9); } }
+@keyframes mochi-land { 0% { transform: scale(1.2, .75); } 45% { transform: scale(.94, 1.08); } 75% { transform: scale(1.04, .95); } 100% { transform: scale(1); } }
+@keyframes mochi-sleep { 0%, 100% { transform: scale(1.08, .85); } 50% { transform: scale(1.12, .81); } }
+@media (prefers-reduced-motion: reduce) {
+    .fluffy-pet[data-motion] .fluffy-body,
+    .fluffy-pet[data-motion] .fluffy-shadow,
+    .fluffy-pet[data-motion] .mochi-bubble,
+    .fluffy-pet[data-motion] .mochi-eyes { animation: none; transition: none; rotate: none; }
+    .fluffy-pet[data-motion="carried"] .fluffy-body { transform: scale(.94, 1.06); }
+}

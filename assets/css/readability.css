@@ -1,0 +1,178 @@
+/* Reading surfaces stay quiet; pixel type and hard shadows frame the interface. */
+:root {
+    --reading-font: "Source Sans 3", "Segoe UI", Arial, sans-serif;
+}
+
+body {
+    align-items: flex-start;
+    padding: 32px;
+    background: #e3e3df;
+    font-size: 18px;
+    line-height: 1.65;
+}
+
+.console-wrap {
+    max-width: 1480px;
+    padding: 28px;
+    background: #f6f6f2;
+}
+
+.profile-dock {
+    padding: 24px 28px;
+    border-width: 2px;
+    box-shadow: 4px 4px 0 #111;
+}
+
+.dock-chip-row { justify-content: flex-start; margin-bottom: 16px; }
+.dock-chip-row .badge { font-family: var(--pixel-font); font-size: 10px; }
+.dock-body { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 28px; }
+.dock-body .pixel-card { border: 0; padding: 0; background: none; box-shadow: none; min-width: 0; }
+.dock-body .pixel-card:first-child { display: flow-root; }
+.dock-body .card-image { float: left; width: 112px; height: 128px; margin: 0 24px 8px 0; object-fit: cover; image-rendering: auto; }
+.dock-body .pixel-card h3 { font-family: var(--reading-font); font-size: 22px; line-height: 1.3; border: 0; padding: 0; margin-bottom: 10px; }
+.dock-body .pixel-card:first-child h3 { font-size: clamp(26px, 3vw, 36px); }
+.dock-body .pixel-card p, .dock-body .pixel-card li { font-size: 18px; line-height: 1.65; }
+.dock-body .pixel-card ul li { background: none; border: 0; padding: 0; }
+.dock-links { flex-wrap: wrap; margin-top: 20px; gap: 12px; }
+.social-link { width: auto; height: auto; min-height: 44px; padding: 7px 14px; font: 600 16px/1.5 var(--reading-font); overflow-wrap: anywhere; }
+
+.tab-bar { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 28px 0 20px; overflow: visible; }
+.pak-tab { min-height: 64px; font-size: 11px; padding: 20px 8px 16px; }
+.page-layout { grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; }
+.panel-stack { order: 0; }
+.top-right-stack { order: 0; min-width: 0; }
+.hero-right { animation: none; padding: 12px; border-width: 2px; box-shadow: 4px 4px 0 #111; }
+.boot-row { flex-wrap: wrap; gap: 8px; font-size: 9px; }
+.meta-hud { flex-wrap: wrap; font-size: 9px; gap: 6px; }
+
+.panel, #home.panel { min-height: 0; padding: 24px; border-width: 2px; box-shadow: 4px 4px 0 #111; animation: none; opacity: 1; transform: none; }
+.panel-head { font-size: 12px; padding-bottom: 16px; margin-bottom: 24px; border-bottom: 2px solid #222; }
+.panel-head > span:first-child { border: 0; }
+.badge { font: 600 13px/1.4 var(--reading-font); }
+.grid { grid-template-columns: 1fr; gap: 28px; }
+.pixel-card, #news .publication-card { background: #fff; border: 1px solid #bbb; box-shadow: none; padding: 20px; }
+.pixel-card h3, #publications .publication-content h3, #news .publication-content h3 { font: 700 21px/1.45 var(--reading-font); letter-spacing: 0; border-bottom: 1px solid #ccc; padding-bottom: 12px; margin-bottom: 16px; }
+.pixel-card p, .pixel-card li, .publication-content p, .entry-secondary, .profile-item-note, .home-preview-detail { font-size: 18px; line-height: 1.7; color: #333; }
+.pixel-card ul li { border: 0; background: none; padding: 4px 0; }
+.home-preview-card.home-preview-publications h3, .home-preview-card.home-preview-news h3 { border-bottom: 1px solid #ccc; }
+.home-preview-card.home-preview-publications ul, .home-preview-card.home-preview-news ul { list-style: none; padding: 0; gap: 20px; }
+.home-preview-card.home-preview-publications li, .home-preview-card.home-preview-news li { border: 0; border-bottom: 1px solid #ddd; background: none; padding: 0 0 20px; }
+.home-preview-title-row { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.home-preview-date { grid-column: 1 / -1; width: auto; font: 600 14px/1.5 var(--reading-font); color: #555; }
+.home-preview-main-title { font-weight: 700; line-height: 1.55; }
+.home-preview-card.home-preview-publications .home-preview-title-row, .home-preview-card.home-preview-news .home-preview-title-row { border: 0; padding: 0; margin-bottom: 8px; }
+.preview-jump { font-size: 9px; min-height: 44px; padding: 12px; }
+.timeline { gap: 24px; }
+.timeline-entry { grid-template-columns: 1fr; border: 0; background: none; box-shadow: none; }
+#publications .timeline-entry, #news .timeline-entry { padding: 0; }
+#publications .timeline-entry time, #news .timeline-entry time { width: auto; justify-self: start; border: 0; background: #eee; font: 600 15px/1.5 var(--reading-font); padding: 4px 10px; }
+.publication-body { grid-template-columns: 160px minmax(0, 1fr); gap: 20px; }
+.publication-title-link { line-height: inherit; }
+.publication-content h3 { overflow-wrap: break-word; }
+.publication-image { image-rendering: auto; }
+.entry-link-icon { margin-left: 0; }
+.footer-line { margin-top: 28px; font: 14px/1.6 var(--reading-font); color: #555; }
+
+/* Readable labels within the original game, without changing its mechanics. */
+.haptic-order-request, .haptic-start-copy { font-size: 17px; line-height: 1.6; }
+.haptic-start-copy { font-family: var(--reading-font); }
+.haptic-feedback, .haptic-stage-caption, .haptic-control-head,
+.haptic-thermal-control-label, .haptic-thermal-pump-readout,
+.haptic-order-spec-label, .haptic-order-spec-value,
+.haptic-ranking-row, .haptic-ranking-empty, .haptic-nickname-label {
+    font-family: var(--reading-font);
+    font-size: 13px;
+    line-height: 1.5;
+}
+.haptic-nickname-input { font: 16px/1.5 var(--reading-font); }
+.haptic-start-screen { padding: 24px 16px; }
+
+a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 3px solid #555;
+    outline-offset: 4px;
+}
+.social-link:hover, .profile-item-link:hover, .publication-title-link:hover { text-decoration: underline; }
+
+@media (max-width: 1100px) {
+    body { padding: 20px; }
+    .console-wrap { padding: 20px; }
+    .page-layout { grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; }
+    .panel, #home.panel { padding: 18px; }
+    .publication-body { grid-template-columns: 1fr; }
+    .publication-thumb-frame { max-width: 320px; }
+}
+
+@media (max-width: 860px) {
+    .page-layout { grid-template-columns: 1fr; }
+    .top-right-stack { width: 100%; max-width: 480px; justify-self: center; }
+    .dock-body { grid-template-columns: 1fr; gap: 20px; }
+    .dock-body .pixel-card + .pixel-card { border-top: 1px solid #ccc; padding-top: 20px; }
+}
+
+@media (max-width: 540px) {
+    body { padding: 12px; }
+    .console-wrap { padding: 12px; }
+    .profile-dock { padding: 18px; }
+    .dock-body .card-image { width: 80px; height: 96px; margin-right: 16px; }
+    .dock-body .pixel-card p { clear: both; }
+    .dock-links { gap: 10px; }
+    .social-link { max-width: 100%; padding: 8px 10px; }
+    .tab-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 24px; }
+    .pak-tab { min-height: 58px; font-size: 10px; }
+    .panel, #home.panel { padding: 16px; }
+    .panel-head { font-size: 10px; gap: 8px; }
+    .pixel-card, #home .home-preview-card { padding: 14px; }
+    .pixel-card h3 { font-size: 20px; }
+    .pixel-card p, .pixel-card li, .publication-content p, .entry-secondary, .home-preview-detail { font-size: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-screen, .led { animation: none; }
+    .pak-tab { transition: none; }
+}
+
+/* The kiosk has a compact lobby and a deliberate play / result / next flow. */
+.hero-right .meta-playground, .meta-playground { min-height: 0; }
+.slime-layer.haptic-layer {
+    min-height: 0;
+    grid-template-areas: "toolbar" "score" "help" "order" "stage" "station";
+    gap: 12px;
+    background: #f5f5f2;
+}
+.haptic-layer [hidden] { display: none !important; }
+.haptic-layer:not(.is-playing) > :not(.haptic-start-screen) { display: none; }
+.haptic-start-screen { position: relative; inset: auto; padding: 28px 16px; }
+.haptic-layer.is-playing > .haptic-start-screen { display: none; }
+.haptic-toolbar { grid-area: toolbar; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.haptic-phase { font: 700 12px/1.5 var(--reading-font); }
+.haptic-pause, .haptic-next { border: 2px solid #111; background: #fff; color: #111; min-height: 44px; padding: 8px 12px; font: 700 15px/1.4 var(--reading-font); cursor: pointer; box-shadow: 2px 2px 0 #111; }
+.haptic-help { grid-area: help; margin: 0; padding: 10px; border-left: 3px solid #111; background: #fff; font: 15px/1.6 var(--reading-font); }
+.haptic-scoreboard { font: 700 13px/1.5 var(--reading-font); }
+.haptic-order { padding: 12px; box-shadow: 2px 2px 0 #777; }
+.haptic-order-name { font: 700 20px/1.4 var(--reading-font); }
+.haptic-order-top { font: 700 13px/1.4 var(--reading-font); }
+.haptic-timer { font: 700 16px/1.4 var(--reading-font); font-variant-numeric: tabular-nums; }
+.haptic-order-specs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.haptic-order-spec:has(.haptic-order-spec-value):last-child:not([hidden]) { grid-column: 1 / -1; }
+.haptic-station { grid-template-areas: "modes" "controls" "render" "feedback" "next"; }
+.haptic-station.is-thermal-game { grid-template-areas: "thermal" "render" "feedback" "next"; }
+.haptic-station.is-runner { grid-template-areas: "jump" "feedback" "next"; }
+.haptic-next { grid-area: next; width: 100%; background: #111; color: #fff; }
+.haptic-feedback { text-align: left; min-height: 42px; padding: 10px 4px 4px; font: 600 14px/1.6 var(--reading-font); }
+.haptic-feedback.is-fail { text-decoration: none; }
+.haptic-layer.is-paused .haptic-help::before { content: "Paused. Press Resume to continue. "; font-weight: 700; }
+.haptic-layer.is-paused .haptic-stage { opacity: .5; }
+.haptic-control-head { flex-wrap: wrap; white-space: normal; }
+.haptic-thermal-position-button, .haptic-thermal-vent, .haptic-thermal-pump-button, .haptic-render { font: 700 14px/1.4 var(--reading-font); }
+.haptic-actuator { font: 700 13px/1 var(--reading-font); }
+.haptic-start-button { font-size: 11px; }
+
+/* Pulse runner: a readable two-height course with variable-height jumps. */
+.haptic-runner-track { height: 158px; background-color: #fafaf7; }
+.haptic-runner-grid { right: -32px; will-change: transform; }
+.haptic-runner-obstacle.is-ceiling { clip-path: polygon(0 0, 100% 0, 100% 62%, 75% 100%, 50% 62%, 25% 100%, 0 62%); background: #555; }
+.haptic-runner-obstacle.is-stack { background: #111; }
+.haptic-runner-player { rotate: var(--runner-turn, 0deg); }
+.haptic-runner-progress { display: block; width: 100%; height: 10px; accent-color: #111; }
+.haptic-jump { touch-action: none; user-select: none; -webkit-user-select: none; font: 700 16px/1.5 var(--reading-font); }
+.haptic-jump:active { background: #555; color: #fff; }
