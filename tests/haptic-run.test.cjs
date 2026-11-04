@@ -129,3 +129,27 @@ test('public rules text is English and old localized logs are migrated',()=>{
  const s=E.create(1);s.log=['\uc774\uc804 \uae30\ub85d'];
  const restored=E.restore(JSON.stringify(s));assert(restored);assert.match(restored.log[0],/resumed/);assert.deepEqual(restored.deck,s.deck);
 });
+
+test('combat feedback reports each hit after block and caps lethal HP damage',()=>{
+ const s=battle(); hand(s,['echo']); s.battle.enemy.block=3; s.battle.enemy.hp=4;
+ const effects=[]; E.play(s,0,e=>effects.push(e));
+ assert.deepEqual(effects,[{target:'enemy',kind:'absorb',amount:3},{target:'enemy',kind:'damage',amount:1},{target:'enemy',kind:'damage',amount:3}]);
+ assert.equal(s.phase,'reward');
+});
+test('incoming multi-hit feedback separates blocked damage from actual HP loss',()=>{
+ const s=battle(); s.battle.enemy.id='beetle'; s.battle.turn=2; s.battle.block=9;
+ const effects=[]; const hp=s.hp; E.endTurn(s,e=>effects.push(e));
+ assert.deepEqual(effects,[{target:'player',kind:'absorb',amount:7},{target:'player',kind:'absorb',amount:2},{target:'player',kind:'damage',amount:5}]);
+ assert.equal(hp-s.hp,5);
+});
+test('healing feedback uses actual restored HP and rejected plays emit nothing',()=>{
+ const s=battle(); hand(s,['recovery']); s.hp=s.maxHp-2; const effects=[];
+ E.play(s,0,e=>effects.push(e));
+ assert.deepEqual(effects,[{target:'player',kind:'heal',amount:2},{target:'player',kind:'block',amount:4}]);
+ assert.equal(E.play(s,99,e=>effects.push(e)),false); assert.equal(effects.length,2);
+});
+test('lethal Heat feedback is capped and cancels the incoming attack',()=>{
+ const s=battle(); s.battle.enemy.hp=2; s.battle.enemy.burn=8; const effects=[];
+ E.endTurn(s,e=>effects.push(e));
+ assert.deepEqual(effects,[{target:'enemy',kind:'damage',amount:2,source:'heat'}]); assert.equal(s.phase,'reward');
+});

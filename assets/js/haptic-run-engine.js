@@ -136,7 +136,7 @@
         if (e.id === 'boss' && !e.awakened && e.hp <= e.maxHp / 2) { e.awakened = true; e.strength += 3; note(s, 'The Devourer awakens! Enemy Amplify +3.'); }
         return false;
     }
-    function play(s, index) {
+    function play(s, index, emit = () => {}) {
         if (s.phase !== 'battle' || !Number.isInteger(index)) return false;
         const b = s.battle, instance = b.hand[index];
         if (!instance) return false;
@@ -148,30 +148,41 @@
             const amount = Math.floor((c.damage + b.strength) * (e.vulnerable > 0 ? 1.5 : 1));
             const absorbed = Math.min(e.block, amount); e.block -= absorbed;
             const damage = Math.min(e.hp, amount - absorbed); e.hp -= damage; dealt += damage;
+            if (absorbed) emit({ target: 'enemy', kind: 'absorb', amount: absorbed });
+            if (damage) emit({ target: 'enemy', kind: 'damage', amount: damage });
         }
         b.block += c.block || 0; b.energy += c.energy || 0; b.strength += c.strength || 0; b.armor += c.armor || 0;
         e.burn += c.burn || 0; e.weak += c.weak || 0; e.vulnerable += c.vulnerable || 0;
-        s.hp = Math.min(s.maxHp, s.hp + (c.heal || 0)) - (c.self || 0);
+        const healed = Math.min(s.maxHp - s.hp, c.heal || 0);
+        if (healed) emit({ target: 'player', kind: 'heal', amount: healed });
+        if (c.self) emit({ target: 'player', kind: 'damage', amount: Math.min(s.hp + healed, c.self) });
+        if (c.block) emit({ target: 'player', kind: 'block', amount: c.block });
+        if (c.burn) emit({ target: 'enemy', kind: 'heat', amount: c.burn });
+        s.hp = s.hp + healed - (c.self || 0);
         if (c.draw) draw(s, c.draw);
         // Resolve draw before discarding: a card cannot immediately draw itself.
         (c.exhaust ? b.exhaust : b.discard).push(instance);
         note(s, `${c.name}${instance.upgraded ? '+' : ''}${c.damage ? ` · damage ${dealt}` : ''}${c.block ? ` · Block +${c.block}` : ''}.`);
         check(s); return true;
     }
-    function endTurn(s) {
+    function endTurn(s, emit = () => {}) {
         if (s.phase !== 'battle') return false;
         const b = s.battle, e = b.enemy;
         b.discard.push(...b.hand); b.hand = [];
         // Heat bypasses armor. A heat kill cancels the enemy intent.
-        if (e.burn > 0) { note(s, `Heat damage: ${e.burn}.`); e.hp -= e.burn; e.burn--; if (check(s)) return true; }
+        if (e.burn > 0) { note(s, `Heat damage: ${e.burn}.`); emit({ target: 'enemy', kind: 'damage', amount: Math.min(e.hp, e.burn), source: 'heat' }); e.hp -= e.burn; e.burn--; if (check(s)) return true; }
         const move = intent(s);
         let lost = 0;
         for (let hit = 0; hit < move.hits; hit++) {
             const blocked = Math.min(b.block, move.damage); b.block -= blocked;
+            const damage = Math.min(Math.max(0, s.hp - lost), move.damage - blocked);
+            if (blocked) emit({ target: 'player', kind: 'absorb', amount: blocked });
+            if (damage) emit({ target: 'player', kind: 'damage', amount: damage });
             lost += move.damage - blocked;
         }
         s.hp -= lost; e.weak = Math.max(0, e.weak - 1); e.vulnerable = Math.max(0, e.vulnerable - 1);
         // Enemy armor lasts through the next player turn, then is replaced.
+        if (move.block) emit({ target: 'enemy', kind: 'block', amount: move.block });
         e.block = move.block || 0; e.strength += move.strength || 0;
         note(s, `Enemy action · HP lost ${lost}${move.block ? ` · enemy Block +${move.block}` : ''}${move.strength ? ` · enemy Amplify +${move.strength}` : ''}.`);
         if (!check(s)) startTurn(s);

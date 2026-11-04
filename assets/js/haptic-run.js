@@ -82,6 +82,43 @@
         const animation = body.animate(frames[cue] || frames.heal, {duration:cue === 'attack' ? 420 : 500,easing:'ease-out'});
         animation.onfinish = () => { if (actor.isConnected) actor.dataset.mood = 'idle'; };
     }
+    function combatEffects(effects) {
+        const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const counts = { player: 0, enemy: 0 };
+        let duration = 0;
+        for (const effect of effects) {
+            const actor = app.querySelector(effect.target === 'player' ? '.mochi-player' : '.enemy-station .monster');
+            if (!actor) continue;
+            const row = counts[effect.target]++;
+            const delay = row * 150;
+            duration = Math.max(duration, delay + 950);
+            const number = document.createElement('span');
+            number.className = `combat-number fx-${effect.kind}`;
+            number.setAttribute('aria-hidden', 'true');
+            const labels = { damage: `−${effect.amount} HP`, heal: `+${effect.amount} HP`, block: `+${effect.amount} Block`, absorb: `${effect.amount} Blocked`, heat: `+${effect.amount} Heat` };
+            number.textContent = labels[effect.kind];
+            number.style.setProperty('--fx-delay', `${delay}ms`);
+            number.style.setProperty('--fx-row', row % 3);
+            actor.append(number);
+            const timer = setTimeout(() => {
+                if (!actor.isConnected) return;
+                if (effect.kind === 'damage') {
+                    const flash = document.createElement('span');
+                    flash.className = `combat-impact${effect.source === 'heat' ? ' heat-impact' : ''}`;
+                    flash.setAttribute('aria-hidden', 'true');
+                    actor.append(flash);
+                    setTimeout(() => flash.remove(), 450);
+                    if (!reduced) {
+                        const sprite = actor.querySelector('.fluffy-body, .monster-sprite');
+                        sprite?.animate([{transform:'translateX(0)',filter:'brightness(1)'},{transform:'translateX(-7px)',filter:'brightness(2)'},{transform:'translateX(6px)'},{transform:'translateX(0)',filter:'brightness(1)'}], {duration:300,easing:'ease-out'});
+                    }
+                }
+            }, delay);
+            // DOM replacement cancels obsolete effects; no persistent combat state is changed.
+            setTimeout(() => { clearTimeout(timer); number.remove(); }, delay + 1000);
+        }
+        return duration;
+    }
     function battleMarkup() {
         const b = state.battle, e = b.enemy, enemy = E.ENEMIES[e.id], move = E.intent(state);
         const intent = [move.damage ? `Attack ${move.damage}${move.hits > 1 ? ` × ${move.hits}` : ''}` : '', move.block ? `Block +${move.block}` : '', move.strength ? `Amplify +${move.strength}` : ''].filter(Boolean).join(' · ');
@@ -116,7 +153,7 @@
         if (focus) { const target = app.querySelector('.choice-panel h2, .battle-panel h2, .map-panel h2'); if (target) { target.tabIndex = -1; target.focus({preventScroll:true}); } }
     }
     function announce(text) { document.getElementById('run-announcement').textContent = text; }
-    document.addEventListener('click', event => {
+    document.addEventListener('click', async event => {
         const button = event.target.closest('button[data-action]');
         if (!button || button.disabled || busy) return;
         const action = button.dataset.action, index = Number(button.dataset.index);
@@ -130,13 +167,15 @@
         const before = state?.phase;
         const oldHp = state?.hp;
         const played = action === 'play' && state?.phase === 'battle' && state.battle.hand[index] ? E.card(state.battle.hand[index].id, state.battle.hand[index].upgraded) : null;
+        const effects = [];
+        const emit = effect => effects.push(effect);
         let changed = false;
         if (action === 'new') { if (dialog.open) dialog.close(); state = E.create(Date.now(), selectedArchetype); state.runId = `research-${crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2)}`; saved = null; choosing = null; changed = true; }
         else if (action === 'continue' && saved) { state = saved; saved = null; changed = true; }
         else if (state) {
             if (action === 'visit') changed = E.visit(state,button.dataset.id);
-            if (action === 'play') changed = E.play(state,index);
-            if (action === 'end') changed = E.endTurn(state);
+            if (action === 'play') changed = E.play(state,index,emit);
+            if (action === 'end') changed = E.endTurn(state,emit);
             if (action === 'reward') changed = E.reward(state,button.dataset.index);
             if (action === 'skip') changed = E.reward(state);
             if (action === 'heal') changed = E.camp(state,'heal');
@@ -150,12 +189,22 @@
             if (action === 'cancel') { choosing = null; changed = true; }
         }
         if (changed) {
-            persist(); render(before !== state.phase || !!choosing || action === 'cancel');
+            persist();
+            // Keep the last hit visible before replacing combat with rewards or defeat.
+            if (before === 'battle' && state.phase !== 'battle' && effects.length) {
+                const duration = combatEffects(effects);
+                app.setAttribute('aria-busy', 'true');
+                app.querySelectorAll('button').forEach(button => button.disabled = true);
+                await new Promise(resolve => setTimeout(resolve, duration));
+                app.removeAttribute('aria-busy');
+            }
+            render(before !== state.phase || !!choosing || action === 'cancel');
+            if (state.phase === 'battle') combatEffects(effects);
             if (state.phase === 'battle') {
                 const cue = action === 'end' ? (state.hp < oldHp ? 'hit' : 'block') : played ? (played.damage ? 'attack' : played.heal ? 'heal' : 'block') : 'idle';
                 if (cue !== 'idle') animateBattle(cue);
             }
-            announce(state.phase === 'battle' ? `${state.log.at(-1)} Energy ${state.battle.energy}, Enemy HP ${state.battle.enemy.hp}.` : state.phase === 'map' ? 'Choose your next route.' : state.phase === 'reward' ? 'Victory! Choose your reward card.' : 'View updated.');
+            announce(state.phase === 'battle' ? `${effects.map(e => `${e.target === 'player' ? 'Mochi' : 'Enemy'}: ${e.amount} ${e.kind}`).join('. ')}. ${state.log.at(-1)} Energy ${state.battle.energy}, Enemy HP ${state.battle.enemy.hp}.` : state.phase === 'map' ? 'Choose your next route.' : state.phase === 'reward' ? 'Victory! Choose your reward card.' : 'View updated.');
             if (before === 'battle' && state.phase === 'battle') (app.querySelector('.hand button:not(:disabled)') || app.querySelector('[data-action="end"]'))?.focus({preventScroll:true});
             if (before !== state.phase) {
                 const destination = state.phase === 'map' ? app.querySelector('.map-node.available') : app;

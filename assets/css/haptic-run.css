@@ -182,3 +182,15 @@ dialog { width:min(900px,calc(100% - 28px)); max-height:85dvh; border:2px solid 
     .monster-boss { width:126px; height:112px; }
 }
 @media(prefers-reduced-motion:reduce) { .mochi-player .fluffy-body,.mochi-player .mochi-eyes,.mochi-player .mochi-bubble { animation:none!important; } }
+
+/* Combat feedback stays anchored to each actor and cannot intercept input. */
+.enemy-station .monster { position:relative; }
+.combat-number { position:absolute; z-index:8; left:50%; top:calc(5% + var(--fx-row,0) * 32px); width:max-content; max-width:230px; pointer-events:none; font:900 clamp(18px,3vw,26px)/1.2 system-ui,sans-serif; color:#fff4e2; background:#71302c; border:2px solid #fff4e2; border-radius:5px; padding:4px 8px; box-shadow:2px 3px 0 #203c3166; opacity:0; animation:combat-float 950ms ease-out var(--fx-delay,0ms) both; }
+.combat-number.fx-heal { background:#286340; color:#efffdc; }
+.combat-number.fx-block,.combat-number.fx-absorb { background:#245d79; color:#e8faff; }
+.combat-number.fx-heat { background:#88451e; color:#fff3cd; }
+.combat-impact { position:absolute; z-index:7; inset:18%; pointer-events:none; background:#fff4c6; clip-path:polygon(50% 0,60% 34%,90% 10%,72% 42%,100% 50%,67% 60%,88% 92%,58% 70%,50% 100%,40% 68%,8% 88%,30% 58%,0 50%,34% 40%,12% 12%,43% 30%); animation:combat-impact 400ms ease-out both; }
+.heat-impact { background:#ffc76b; }
+@keyframes combat-float { 0% { opacity:0; transform:translate(-50%,12px) scale(.7); } 15% { opacity:1; transform:translate(-50%,-8px) scale(1.12); } 35% { opacity:1; transform:translate(-50%,-16px) scale(1); } 80% { opacity:1; } 100% { opacity:0; transform:translate(-50%,-64px) scale(1); } }
+@keyframes combat-impact { 0% { opacity:1; transform:scale(.25) rotate(-15deg); } 40% { opacity:.9; } 100% { opacity:0; transform:scale(1.4) rotate(15deg); } }
+@media(prefers-reduced-motion:reduce) { .combat-number { opacity:1; transform:translateX(-50%); } .combat-impact { animation:none; opacity:.45; } }
