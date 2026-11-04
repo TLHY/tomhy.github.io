@@ -2198,7 +2198,7 @@ async function loadContent() {
         setText("version-label", data.meta?.versionLabel);
         setText("footer-hint", data.meta?.footerHint);
         setText("footer-copyright", data.meta?.footerCopyright);
-        initHapticTycoon(data.meta || {});
+        // The former kiosk is now Mochi’s home; its pet and economy initialize separately.
 
         setText("home-header", data.home?.header);
         setText("home-badge", data.home?.badge);

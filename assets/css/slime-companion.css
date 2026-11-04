@@ -88,3 +88,12 @@
     .fluffy-pet[data-motion] .mochi-eyes { animation: none; transition: none; rotate: none; }
     .fluffy-pet[data-motion="carried"] .fluffy-body { transform: scale(.94, 1.06); }
 }
+
+.slime-research-game { display:grid; gap:4px; margin-top:16px; padding:12px; border:1px solid #8da374; border-radius:7px; background:#e8f1d7; color:#304c2d; text-decoration:none; }
+.slime-research-game>span { font-size:10px; letter-spacing:.08em; font-weight:700; }
+.slime-research-game strong { font-size:17px; }
+.slime-research-game small { font-size:12px; line-height:1.5; }
+.slime-research-game:hover { background:#dcecc4; }
+
+.slime-writing-game { background:#f2e8d8; border-color:#b5a27e; color:#5a4931; }
+.slime-writing-game:hover { background:#eadcc3; }

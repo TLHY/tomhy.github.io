@@ -2,6 +2,8 @@
 (() => {
     const KEY = "tomhy_fluffy_slime_v1";
     const SIZE = 64;
+    let atHome = !!document.getElementById('lab-home-perch');
+    let labUpgrades = new Set(MochiWallet.read().owned);
     const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch { /* Optional storage. */ }
@@ -13,38 +15,7 @@
     host.innerHTML = `
       <button class="fluffy-pet" type="button" aria-label="Mochi the slime. Click to care, or hold to carry." aria-expanded="false" aria-controls="slime-care">
         <span class="fluffy-shadow" aria-hidden="true"></span><span class="fluffy-body" aria-hidden="true">
-          <svg class="mochi-art" viewBox="0 0 120 105" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
-            <defs>
-              <radialGradient id="mochi-jelly" cx=".37" cy=".22" r=".88">
-                <stop stop-color="#fbfff3"/><stop offset=".35" stop-color="#dceebd"/><stop offset=".72" stop-color="#b9d68f"/><stop offset="1" stop-color="#ecf6d8"/>
-              </radialGradient>
-              <radialGradient id="mochi-bubble" cx=".3" cy=".25" r=".8">
-                <stop stop-color="#fff" stop-opacity=".98"/><stop offset=".4" stop-color="#e9f6cf" stop-opacity=".86"/><stop offset="1" stop-color="#a9c77c" stop-opacity=".9"/>
-              </radialGradient>
-              <radialGradient id="mochi-shine"><stop stop-color="#fff" stop-opacity=".98"/><stop offset=".5" stop-color="#fff" stop-opacity=".7"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
-              <radialGradient id="mochi-eye" cx=".35" cy=".25" r=".8"><stop stop-color="#454c39"/><stop offset=".5" stop-color="#11170d"/><stop offset="1" stop-color="#020502"/></radialGradient>
-            </defs>
-            <g stroke="#465334" stroke-width="1.5" fill="url(#mochi-bubble)">
-              <circle class="mochi-bubble bubble-top" cx="57" cy="9" r="6"/>
-              <circle cx="40" cy="29" r="10"/><circle cx="73" cy="32" r="7"/>
-              <circle class="mochi-bubble bubble-left" cx="12" cy="43" r="4"/>
-              <circle cx="66" cy="21" r="1.6"/>
-            </g>
-            <path d="M7 87 C15 83 15 72 20 62 C26 43 35 32 51 32 C69 30 77 41 82 56 C88 73 99 79 113 83 C121 86 118 91 107 91 L96 91 C94 92 96 98 89 98 C82 96 80 95 74 97 C68 99 67 103 59 101 C52 97 49 97 42 99 C35 102 29 104 26 98 C23 92 20 92 12 93 C3 94 0 90 7 87Z" fill="url(#mochi-jelly)" stroke="#3f4d2e" stroke-width="1.8" stroke-linejoin="round"/>
-            <path d="M8 89 C17 87 20 88 25 91 C30 96 28 100 35 98 M45 96 Q53 94 59 98 Q65 101 71 96 M78 94 Q85 91 90 95 M98 87 L112 87" stroke="#f8ffe9" stroke-width="2.4" stroke-linecap="round"/>
-            <circle cx="79" cy="54" r="9" fill="url(#mochi-bubble)" stroke="#54613b" stroke-width="1.3"/>
-            <ellipse cx="45" cy="41" rx="17" ry="6" fill="url(#mochi-shine)" transform="rotate(-22 45 41)"/>
-            <ellipse cx="32" cy="85" rx="7" ry="10" fill="url(#mochi-shine)"/>
-            <ellipse cx="76" cy="78" rx="7" ry="7" fill="url(#mochi-shine)"/>
-            <ellipse cx="93" cy="87" rx="6" ry="5" fill="url(#mochi-shine)"/>
-            <circle cx="67" cy="72" r="4" fill="url(#mochi-shine)"/>
-            <g class="mochi-eyes">
-              <g class="mochi-eye"><ellipse cx="36" cy="54" rx="4.4" ry="5.5" fill="url(#mochi-eye)"/><ellipse cx="34.9" cy="52.2" rx="1.4" ry="1.8" fill="white" opacity=".95"/></g>
-              <g class="mochi-eye"><ellipse cx="58" cy="60" rx="5" ry="5.6" fill="url(#mochi-eye)"/><ellipse cx="56.7" cy="58.1" rx="1.6" ry="1.8" fill="white" opacity=".95"/></g>
-            </g>
-            <g class="mochi-happy-eyes" stroke="#28391b" stroke-width="2.4" stroke-linecap="round"><path d="M32 55 Q36 49 40 55"/><path d="M53 60 Q58 54 63 60"/></g>
-            <g class="mochi-mouth"><circle cx="36" cy="70" r="6.2" fill="#f3f0ad" stroke="#687341" stroke-width="1.2"/><ellipse cx="33.4" cy="70" rx="3.4" ry="4.6" fill="#faf7cf" stroke="#899152" stroke-width="1"/><path d="M32 66 Q36 68 33 73" stroke="#fffde7" stroke-width="1.5" stroke-linecap="round"/></g>
-          </svg>
+          ${MochiArt.render('companion')}
         </span><span class="fluffy-emote" aria-hidden="true"></span>
       </button>
       <section class="slime-care" id="slime-care" role="dialog" aria-label="Care for Mochi" hidden>
@@ -52,6 +23,9 @@
         <p class="slime-care-message" role="status" aria-live="polite">A little jelly, happy to see you.</p>
         <div class="slime-needs"></div>
         <div class="slime-care-actions"><button type="button" data-care="feed">🍓 Feed</button><button type="button" data-care="pet">♡ Pet</button><button type="button" data-care="play">✦ Play</button><button type="button" data-care="sleep">☾ Nap</button></div>
+        <a class="slime-research-game" href="haptic-lab.html"><span>RESEARCH GAME</span><strong>Sensory Spire →</strong><small>Play as Mochi · Build a deck · Choose your route</small></a>
+        <a class="slime-research-game slime-writing-game" href="writing-game.html"><span>WRITING GAME</span><strong>Draft After Dark →</strong><small>Auto-fire survival · Build your tools · Dodge the redlines</small></a>
+        <button type="button" class="slime-home-button">⌂ Return to the lab</button>
         <p class="slime-care-hint">Hold Mochi to carry. Release near a border to settle. Arrow keys move Mochi while focused.</p>
       </section>`;
     document.body.appendChild(host);
@@ -101,6 +75,7 @@
         for (const key of Object.keys(meters)) meters[key].value = Math.round(state[key]);
         pet.classList.toggle("is-sleeping", state.sleeping);
         host.querySelector('[data-care="sleep"]').textContent = state.sleeping ? "☀ Wake" : "☾ Nap";
+        if (atHome && rails.length) collectRails();
     }
     function paint() {
         pet.style.transform = `translate3d(${x - SIZE / 2}px, ${y - 53}px, 0)`;
@@ -132,12 +107,18 @@
                     spaces = spaces.flatMap(([a, b]) => high <= a || low >= b ? [[a, b]] : [[a, Math.min(b, low)], [Math.max(a, high), b]].filter(([c, d]) => d - c > 12));
                 }
             }
-            spaces.forEach(([a, b]) => rails.push({ element, edge, left: a, right: b, y: railY }));
+            spaces.forEach(([a, b]) => rails.push({ element, edge, left: a, right: b, y: railY, home: element.id === "lab-home-perch" }));
         };
+        const homePerch = document.getElementById("lab-home-perch");
+        if (homePerch) add(homePerch, "top");
         document.querySelectorAll(".profile-dock, .panel.active, .console-wrap").forEach(el => { add(el, "top"); add(el, "bottom"); });
         document.querySelectorAll(".panel.active .panel-head, .panel.active .pixel-card h3").forEach(el => add(el, "bottom"));
         if (!rails.length) return;
-        support = rails.find(r => old && r.element === old.element && r.edge === old.edge && x >= r.left && x <= r.right) || nearest(x || innerWidth / 2, y || 0).rail;
+        support = (atHome && rails.find(r => r.home)) || rails.find(r => old && r.element === old.element && r.edge === old.edge && x >= r.left && x <= r.right) || nearest(x || innerWidth / 2, y || 0).rail;
+        if (atHome && state.sleeping && support.home) {
+            const bed = document.querySelector('.lab-bed')?.getBoundingClientRect();
+            if (bed) support = {...support, left:bed.left+scrollX+bed.width/2, right:bed.left+scrollX+bed.width/2+1, y:bed.top+scrollY+11};
+        }
         if (!pointer && !landing) {
             x = clamp(x || support.left + 70, support.left, support.right);
             y = support.y;
@@ -148,6 +129,8 @@
         const target = nearest(x, y);
         if (!target) return;
         support = target.rail;
+        atHome = !!support.home;
+        announceLocation();
         landing = { fromX: x, fromY: y, toX: target.x, toY: support.y, start: performance.now() };
         idleUntil = performance.now() + 1800;
         pet.classList.remove("is-carried");
@@ -178,25 +161,51 @@
         pet.classList.add("is-happy");
     }
     const actions = {
-        feed() { state.hunger = Math.min(100, state.hunger + 24); state.energy = Math.min(100, state.energy + 5); react("🍓", "Nom nom. Mochi loved that berry!"); },
-        pet() { state.joy = Math.min(100, state.joy + 18); react("♡", "So soft! Mochi leans into your hand."); },
+        feed() { state.hunger = Math.min(100, state.hunger + (labUpgrades.has("feeder") ? 34 : 24)); state.energy = Math.min(100, state.energy + 5); react("🍓", "Nom nom. Mochi loved that berry!"); },
+        pet() { state.joy = Math.min(100, state.joy + (labUpgrades.has("lamp") ? 26 : 18)); react("♡", "So soft! Mochi leans into your hand."); },
+        study() { state.joy = Math.min(100, state.joy + (labUpgrades.has("desk") ? 15 : 8)); state.energy = Math.max(0, state.energy - 2); react("✎", "Mochi is sketching a new idea at the research desk."); },
         play() {
-            if (state.energy < 15) { react("☾", "A little sleepy. Try a nap first."); return; }
-            state.joy = Math.min(100, state.joy + 25); state.energy -= 12; state.hunger = Math.max(0, state.hunger - 6);
+            const cost = labUpgrades.has("shelf") ? 6 : 12;
+            if (state.energy < cost) { react("☾", "A little sleepy. Try a nap first."); return; }
+            state.joy = Math.min(100, state.joy + 25); state.energy -= cost; state.hunger = Math.max(0, state.hunger - 6);
             react("✦", "Bounce, bounce! That was fun.");
             pet.classList.add("is-playing");
         }
     };
-    host.querySelectorAll("[data-care]").forEach(button => button.addEventListener("click", () => {
-        const action = button.dataset.care;
+    function care(action) {
         if (action === "sleep") {
             state.sleeping = !state.sleeping;
             react(state.sleeping ? "zZ" : "☀", state.sleeping ? "Mochi is recharging. Sweet dreams." : "Ready to explore again!");
-        } else if (state.sleeping) react("zZ", "Wake Mochi before playing or feeding.");
-        else if (performance.now() < cooldownUntil) { message.textContent = "One little moment…"; return; }
+        } else if (!actions[action]) return "Choose a care action.";
+        else if (state.sleeping) react("zZ", "Wake Mochi before playing or feeding.");
+        else if (performance.now() < cooldownUntil) message.textContent = "One little moment…";
         else { actions[action](); cooldownUntil = performance.now() + 1200; }
         updateNeeds(); persist();
-    }));
+        return message.textContent;
+    }
+    function announceLocation() {
+        dispatchEvent(new CustomEvent('mochi-location', {detail:{home:atHome}}));
+    }
+    function goHome() {
+        collectRails();
+        const home = rails.find(r => r.home); if (!home) return;
+        support = home; atHome = true; landing = null;
+        x = (home.left + home.right) / 2; y = home.y;
+        idleUntil = performance.now() + 2200;
+        updateNeeds(); openPanel(false); paint(); react("♡", "Home sweet lab."); announceLocation();
+    }
+    function explore() {
+        collectRails();
+        const outside = rails.find(r => !r.home && r.element.matches('.profile-dock')) || rails.find(r => !r.home);
+        if (!outside) return;
+        support = outside; atHome = false; landing = null;
+        state.sleeping = false; updateNeeds(); persist();
+        x = Math.max(outside.left, outside.right - 48); y = outside.y;
+        openPanel(false); paint(); react("✦", "A little adventure around the page!"); announceLocation();
+        outside.element.scrollIntoView({block:'center',behavior:reduceMotion.matches?'instant':'smooth'});
+    }
+    host.querySelectorAll("[data-care]").forEach(button => button.addEventListener("click", () => care(button.dataset.care)));
+    host.querySelector('.slime-home-button').addEventListener('click', () => { goHome(); document.getElementById('mochi-lab')?.scrollIntoView({block:'center',behavior:reduceMotion.matches?'instant':'smooth'}); });
     host.querySelector(".slime-care-close").addEventListener("click", () => openPanel(false, true));
     document.addEventListener("pointerdown", event => { if (!host.contains(event.target)) openPanel(false); });
     pet.addEventListener("pointerdown", event => {
@@ -275,7 +284,7 @@
             x += direction * 16 * dt;
             if (x >= support.right || x <= support.left) {
                 x = clamp(x, support.left, support.right); direction *= -1; idleUntil = now + 1600;
-                const neighbors = rails.filter(r => r !== support && Math.abs(r.y - support.y) > 8 && Math.abs(r.y - support.y) < 400 && x >= r.left - 40 && x <= r.right + 40);
+                const neighbors = rails.filter(r => (!atHome || r.home) && r !== support && Math.abs(r.y - support.y) > 8 && Math.abs(r.y - support.y) < 400 && x >= r.left - 40 && x <= r.right + 40);
                 if (neighbors.length && Math.random() < 0.35) {
                     const target = neighbors[Math.floor(Math.random() * neighbors.length)];
                     landing = { fromX: x, fromY: y, toX: clamp(x, target.left, target.right), toY: target.y, start: now, duration: Math.max(420, Math.abs(target.y - y) * 2) };
@@ -288,7 +297,7 @@
         // Needs change gently while this page is open, with no offline punishment.
         state.hunger = Math.max(0, state.hunger - dt / 90);
         state.joy = Math.max(0, state.joy - dt / 150);
-        state.energy = clamp(state.energy + (state.sleeping ? dt / 2 : -dt / 180), 0, 100);
+        state.energy = clamp(state.energy + (state.sleeping ? dt / (atHome && labUpgrades.has("bed") ? 1 : 2) : -dt / 180), 0, 100);
         if (now > nextBlink) { blinkUntil = now + 160; nextBlink = now + 3500 + Math.random() * 3000; }
         pet.classList.toggle("is-blinking", now < blinkUntil);
         if (now > reactionUntil) {
@@ -305,10 +314,11 @@
         layoutFrame = requestAnimationFrame(() => { layoutFrame = 0; collectRails(); });
     }
     const resize = new ResizeObserver(queueLayout);
-    document.querySelectorAll(".console-wrap, .profile-dock, .panel-stack").forEach(el => resize.observe(el));
+    document.querySelectorAll(".console-wrap, .profile-dock, .panel-stack, #lab-room").forEach(el => resize.observe(el));
     const mutation = new MutationObserver(queueLayout);
     document.querySelectorAll(".panel, .dock-body").forEach(el => mutation.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] }));
     addEventListener("resize", queueLayout);
+    addEventListener("mochi-lab-layout", queueLayout);
     addEventListener("scroll", () => { if (!panel.hidden) positionPanel(); }, { passive: true });
     document.addEventListener("visibilitychange", () => {
         suspended = document.hidden; previous = 0;
@@ -319,7 +329,10 @@
     addEventListener("pagehide", persist);
     updateNeeds();
     collectRails();
-    support = rails.find(r => r.element.matches(".profile-dock") && r.edge === "top") || rails.find(r => r.element.matches(".profile-dock")) || support;
-    if (support) { x = clamp(support.right - 48, support.left, support.right); y = support.y; paint(); }
+    support = rails.find(r => r.home) || rails.find(r => r.element.matches(".profile-dock") && r.edge === "top") || rails.find(r => r.element.matches(".profile-dock")) || support;
+    if (support) { x = support.home ? (support.left + support.right) / 2 : clamp(support.right - 48, support.left, support.right); y = support.y; paint(); }
+    globalThis.MochiCompanion = {home:goHome, explore, care, isHome:()=>atHome, getNeeds:()=>({...state})};
+    MochiWallet.subscribe(wallet=>{labUpgrades=new Set(wallet.owned);});
+    announceLocation();
     if (!suspended) raf = requestAnimationFrame(animate);
 })();

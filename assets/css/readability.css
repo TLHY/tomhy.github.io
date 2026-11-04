@@ -189,3 +189,13 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .haptic-runner-progress { display: block; width: 100%; height: 10px; accent-color: #111; }
 .haptic-jump { touch-action: none; user-select: none; -webkit-user-select: none; font: 700 16px/1.5 var(--reading-font); }
 .haptic-jump:active { background: #555; color: #fff; }
+
+.lab-launch { display:grid; gap:12px; padding:24px; border:2px solid #263f30; box-shadow:4px 4px 0 #263f30; background:#e7eed7; color:#263f30; text-decoration:none; }
+.lab-launch-label { font:700 11px/1.6 var(--reading-font); letter-spacing:.08em; }
+.lab-launch strong { font:700 29px/1.3 var(--reading-font); }
+.lab-launch>span:not(.lab-launch-label) { font:16px/1.6 var(--reading-font); }
+.lab-launch .lab-launch-cta { justify-self:start; font-weight:700!important; border-bottom:2px solid #526d43; }
+.lab-launch:hover { background:#dce9c5; }
+
+.writing-launch { background:#efe6d6; color:#51452f; border-color:#51452f; box-shadow:4px 4px 0 #51452f; }
+.writing-launch:hover { background:#e8d9bd; }

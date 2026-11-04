@@ -8,14 +8,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/styles.css?v=20261104-3">
-    <link rel="stylesheet" href="assets/css/readability.css?v=20261104-5">
-    <link rel="stylesheet" href="assets/css/slime-companion.css?v=20261104-3">
+    <link rel="stylesheet" href="assets/css/readability.css?v=20261104-7">
+    <link rel="stylesheet" href="assets/css/slime-companion.css?v=20261104-6">
+    <link rel="stylesheet" href="assets/css/mochi-lab.css?v=1">
 </head>
 <body>
     <main class="console-wrap">
         <section class="profile-dock" aria-label="Profile quick view">
             <div class="dock-chip-row">
                 <span class="badge" id="dock-profile-badge">Profile</span>
+                <a class="lab-home-shortcut" href="#mochi-lab">Visit Mochi’s Lab</a>
             </div>
             <div id="dock-profile-card" class="dock-body">
                 <p class="loading">Loading profile snapshot...</p>
@@ -70,20 +72,36 @@
                 </section>
             </section>
 
-            <aside class="top-right-stack" aria-label="Haptic Workshop game">
-                <section class="hero-screen hero-right">
-                    <div class="boot-row">
-                        <span><span class="led"></span><span id="player-label">player 1</span></span>
-                        <span id="version-label">pixel hub v1.0</span>
+            <aside class="top-right-stack" aria-label="Haptic games">
+                <section class="mochi-lab" id="mochi-lab" aria-labelledby="lab-title">
+                    <div class="lab-title-row"><div><span class="lab-eyebrow">HOME SWEET LAB</span><h2 id="lab-title">Mochi’s Lab</h2></div><span class="lab-wallet">◈ <strong data-lab-gold>0</strong><small>Lab Gold</small></span></div>
+                    <div class="lab-room" id="lab-room" aria-label="Mochi's interactive laboratory">
+                        <div class="lab-wallpaper" aria-hidden="true"></div><div class="lab-window" aria-hidden="true"><i></i></div>
+                        <button class="lab-furniture lab-bed" data-furniture="sleep" aria-label="Bed: let Mochi nap"><span class="furniture-art" aria-hidden="true"></span><span class="furniture-label">Bed</span></button>
+                        <button class="lab-furniture lab-feeder" data-furniture="feed" aria-label="Bowl: feed Mochi"><span class="furniture-art" aria-hidden="true"></span><span class="furniture-label">Berries</span></button>
+                        <button class="lab-furniture lab-desk" data-furniture="study" aria-label="Desk: study with Mochi"><span class="furniture-art" aria-hidden="true"></span><span class="furniture-label">Study</span></button>
+                        <button class="lab-furniture lab-toy" data-furniture="play" aria-label="Toy: play with Mochi"><span class="furniture-art" aria-hidden="true">✦</span><span class="furniture-label">Play</span></button>
+                        <div class="lab-lamp" aria-hidden="true"></div><div class="lab-shelf" aria-hidden="true"><i></i><i></i><i></i></div>
+                        <div class="lab-rug" aria-hidden="true"></div><div id="lab-home-perch" class="lab-home-perch" aria-hidden="true"></div>
                     </div>
-                    <div class="meta-playground" id="meta-playground" aria-label="Haptic illusion tycoon game">
-                        <div class="meta-hud">
-                            <span id="meta-zone-title">Haptic Workshop</span>
-                            <span id="meta-zone-hint">Match the sensation</span>
-                        </div>
-                        <div class="slime-layer" id="slime-layer"></div>
-                    </div>
+                    <div class="lab-location"><span class="lab-resident">Mochi is home</span><button data-call-home>Call home</button><button data-explore>Take a walk</button></div>
+                    <p id="lab-message" class="lab-message" role="status" aria-live="polite">Click the furniture to care for Mochi. Play games to earn Lab Gold.</p>
+                    <details class="lab-shop"><summary>Furniture & upgrades</summary><div id="lab-upgrades"></div><p class="lab-save-note"></p></details>
+                    <details class="lab-earn"><summary>How to earn Lab Gold</summary><p>Research Game: 10 per battle, 20 per elite, 8 per cache, 60 for the boss. Run Gold stays available for in-run healing.</p><p>Writing Game: 1 per 4 ink cleared, 3 per level gained, plus 50 for winning. Rewards arrive when the run ends.</p></details>
                 </section>
+                <a class="lab-launch" href="haptic-lab.html">
+                    <span class="lab-launch-label">RESEARCH GAME · DECKBUILDING ROGUELIKE</span>
+                    <strong>Sensory Spire</strong>
+                    <span>Join Mochi. Build a deck.<br>Find your way to the Sensory Devourer.</span>
+                    <span class="lab-launch-cta">Play research game →</span>
+                </a>
+                <a class="lab-launch writing-launch" href="writing-game.html">
+                    <span class="lab-launch-label">WRITING GAME · SURVIVOR BULLET HELL</span>
+                    <strong>Draft After Dark</strong>
+                    <span>Auto-fire through your doubts.<br>Dodge the redlines. Finish the page.</span>
+                    <span class="lab-launch-cta">Start writing →</span>
+                </a>
+
 
 
             </aside>
@@ -93,8 +111,10 @@
             <span id="footer-hint">Press L/R (arrow keys) to switch game paks</span>
         </div>
     </main>
-    <script src="assets/js/pulse-course.js?v=20261104-3"></script>
-    <script src="assets/js/app.js?v=20261104-5"></script>
-    <script src="assets/js/slime-companion.js?v=20261104-3"></script>
+    <script src="assets/js/mochi-economy.js?v=1"></script>
+    <script src="assets/js/app.js?v=20261104-6"></script>
+    <script src="assets/js/mochi-art.js?v=1"></script>
+    <script src="assets/js/slime-companion.js?v=20261104-6"></script>
+    <script src="assets/js/mochi-lab.js?v=1"></script>
 </body>
 </html>
