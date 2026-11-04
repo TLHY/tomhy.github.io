@@ -82,7 +82,8 @@ body::before {
 .publication-body { grid-template-columns: 160px minmax(0, 1fr); gap: 20px; }
 .publication-title-link { line-height: inherit; }
 .publication-content h3 { overflow-wrap: break-word; }
-.publication-image { image-rendering: auto; }
+.publication-thumb-frame { align-self: start; min-height: 0; aspect-ratio: auto; display: block; border: 0; background: transparent; overflow: visible; }
+.publication-image { width: 100%; height: auto; image-rendering: auto; background: transparent; }
 .entry-link-icon { margin-left: 0; }
 .footer-line { margin-top: 28px; font: 14px/1.6 var(--reading-font); color: #555; }
 
