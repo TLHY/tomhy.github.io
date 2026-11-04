@@ -74,12 +74,13 @@ The homepage uses `assets/css/readability.css` for its reading layout and pixel-
 
 ## Research Game — Sensory Spire
 
-Open `haptic-lab.html`, or click Mochi and choose **Research Game**. The English deck-building roguelike includes seven branching floors, normal/elite encounters, camps, treasure, events, and a final boss. Choose a Vibration (multi-hit/Amplify), Thermal (Heat/defense), Multimodal (draw/Vulnerable), or HapticGeneration (sampling/refinement) starter deck. Each starts with ten distinct field-specific basic cards. Morale adds 25% direct attack damage for its duration; Evasion can avoid one incoming hit and Thermal Masking can counterattack. Card rewards guarantee at least one matching card while allowing mixed decks.
+Open `haptic-lab.html`, or click Mochi and choose **Research Game**. The English deck-building roguelike includes seven branching floors, normal/elite encounters, camps, treasure, events, and a final boss. Choose a Vibration (shield/tank/retaliation), Thermal (damage over time), Multimodal (two-card fusion), or HapticGeneration (installed turret) starter deck. Each starts with ten distinct field-specific basic cards. Vibration can retain Block and retaliate against every incoming hit. Thermal stacks and preserves Heat; Thermal Masking avoids a hit and applies a delayed Heat response. Multimodal selects two hand cards for a previewed attack/shield fusion costing 1 Energy. HapticGeneration installs up to three persistent turrets that fire or defend at turn end, with support for upgrades, manual activation, and dismantling. Starting device relics match these identities. Card rewards guarantee at least one matching card while allowing mixed decks.
 
 HP, cards, upgrades, and relics persist between encounters. Runs save in browser storage when available. On mobile, swipe the hand horizontally. Mochi shares artwork with the homepage companion and has idle, attack, block, hit, healing, and victory animations. Game rules are inspired by haptics research, not a simulation of real perceptual responses. No audio or device vibration is used.
 
 - `assets/js/haptic-run-engine.js`: deterministic rules, cards, encounters, routes, and save validation.
-- `assets/js/haptic-paper-cards.js`: field/Neutral special cards, source summaries, and explicit evidence labels.
+- `assets/js/haptic-paper-cards.js`: field/Neutral source metadata and explicit evidence labels.
+- `assets/js/haptic-deck-themes.js`: 80 rebalanced field cards and their deck-specific concept mappings.
 - `assets/js/haptic-run.js` and `assets/css/haptic-run.css`: game interface and monster artwork.
 - `assets/js/mochi-art.js`: artwork shared by the companion and research-game hero.
 

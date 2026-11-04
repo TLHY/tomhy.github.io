@@ -112,13 +112,30 @@
     Object.assign(RESEARCH, paperCatalog.papers);
     Object.assign(CARDS, paperCatalog.cards);
     for (const [family, a] of Object.entries(ARCHETYPES)) a.specialCards = Object.keys(CARDS).filter(id => CARDS[id].family === family && CARDS[id].rarity === 'special');
+    const themes = typeof module !== 'undefined' && module.exports ? require('./haptic-deck-themes.js') : root.HapticDeckThemes;
+    if (!themes) throw new Error('Deck themes must load before the rules engine');
+    for (const [id,spec] of Object.entries({...themes.basics,...themes.specials})) {
+        const old = CARDS[id];
+        CARDS[id] = { name:old.name, family:old.family, rarity:old.rarity, ...(old.research ? {research:old.research} : {}), ...spec };
+    }
+    Object.assign(ARCHETYPES.vibration, {subtitle:'Shield · Tank · Retaliation',description:'Build Block, retain protection, and turn incoming hits into counterattacks.'});
+    Object.assign(ARCHETYPES.thermal, {subtitle:'Heat · Damage over time',description:'Stack Heat, preserve its intensity, and trigger repeated damage without consuming it.'});
+    Object.assign(ARCHETYPES.multimodal, {subtitle:'Choose two · Fuse · Attack & defend',description:'Select two hand cards and fuse their material values into one combined attack and shield.'});
+    Object.assign(ARCHETYPES.generation, {subtitle:'Install · Turrets · Automation',description:'Deploy up to three persistent turrets. Build an automated attack and defense network.'});
+    const TURRETS = {
+        pulse:{name:'Pulse Sentry',symbol:'⌁'},shield:{name:'Shield Projector',symbol:'◈'},rail:{name:'Rail Sentry',symbol:'↗'},
+        scatter:{name:'Scatter Sentry',symbol:'⋔'},suppressor:{name:'Suppressor',symbol:'≈'},repair:{name:'Repair Station',symbol:'+'},
+        bastion:{name:'Bastion',symbol:'▣'},supply:{name:'Supply Relay',symbol:'⚡'},recon:{name:'Recon Scanner',symbol:'⌕'}
+    };
+    const TURRET_LIMIT = 3;
+    const turretCap = type => ['supply','recon','suppressor'].includes(type) ? 3 : type === 'repair' ? 4 : 20;
     const RELICS = {
-        cushion: { name: 'Geomagic Touch', device: 'force-arm', text: 'Gain 5 Block on the first turn of each battle.' },
-        battery: { name: 'Novint Falcon', device: 'parallel-arm', text: 'Gain 1 extra Energy on the first turn of each battle.' },
-        lens: { name: 'Haptuator', device: 'tactor', text: 'Start each battle with 1 Amplify.' },
-        thermos: { name: 'Peltier Thermode', device: 'thermode', text: 'Apply 3 Heat when a battle begins.' },
-        notebook: { name: 'Electrotactile Array', device: 'array', text: 'Draw 1 extra card on the first turn of each battle.' },
-        moss: { name: 'SenseGlove', device: 'glove', text: 'Heal 5 HP after winning a battle.' }
+        cushion:{name:'Geomagic Touch',device:'force-arm',text:'Start each battle with 5 Block and retain 25% of remaining Block between turns.'},
+        battery:{name:'Novint Falcon',device:'parallel-arm',text:'The first turret installed each battle activates immediately once, then keeps its normal turn-end activation.'},
+        lens:{name:'Haptuator',device:'tactor',text:'Start each battle with 2 permanent Retaliation: counter each incoming hit that is not evaded.'},
+        thermos:{name:'Peltier Thermode',device:'thermode',text:'Start each battle with 3 enemy Heat. Every Heat application gains +1 Heat.'},
+        notebook:{name:'Electrotactile Array',device:'array',text:'Every fusion gains +2 damage and +2 Block. Draw one extra card on the first turn.'},
+        moss:{name:'SenseGlove',device:'glove',text:'The first counterattack each turn heals 1 HP. Heal 4 HP after winning a battle.'}
     };
     const ENEMIES = {
         static: { name: 'Noise Slime', hp: 30, art: 'slime', color: 'moss', intent: [{ damage: 6 }, { damage: 9 }, { damage: 5, block: 5 }], description: 'A mischievous blob of signal noise.' },
@@ -152,7 +169,7 @@
     }
     function create(seed = Date.now(), archetype = 'vibration') {
         if (!ARCHETYPES[archetype]) archetype = 'vibration';
-        const s = { version: 1, runId: `research-${seed}`, archetype, seed: seed >>> 0, phase: 'map', hp: 72, maxHp: 72, gold: 0, relics: ['cushion'], deck: [], map: [], path: [], available: ['0-0'], battle: null, reward: null, node: null, wins: 0, log: [] };
+        const s = { version: 1, runId: `research-${seed}`, archetype, seed: seed >>> 0, phase: 'map', hp: 72, maxHp: 72, gold: 0, relics: [{vibration:'cushion',thermal:'thermos',multimodal:'notebook',generation:'battery'}[archetype]], deck: [], map: [], path: [], available: ['0-0'], battle: null, reward: null, node: null, wins: 0, log: [] };
         s.log = ['Expedition started. Choose your first route.'];
         s.deck = ARCHETYPES[archetype].cards.map(id => ({ id, upgraded: false }));
         s.map = makeMap(s);
@@ -174,16 +191,17 @@
     function startBattle(s, enemyId) {
         const source = ENEMIES[enemyId], bonus = s.node.floor >= 4 && !source.elite && enemyId !== 'boss' ? 7 : 0;
         s.phase = 'battle';
-        s.battle = { enemy: { id: enemyId, hp: source.hp + bonus, maxHp: source.hp + bonus, block: 0, strength: 0, weak: 0, vulnerable: 0, burn: s.relics.includes('thermos') ? 3 : 0, awakened: false }, turn: 0, energy: 0, block: 0, strength: s.relics.includes('lens') ? 1 : 0, armor: 0, evade: 0, counter: 0, morale: 0, lastFamily: null, draw: shuffle(s, s.deck.map(c => ({ ...c }))), hand: [], discard: [], exhaust: [], played: 0 };
+        s.battle = { enemy: { id: enemyId, hp: source.hp + bonus, maxHp: source.hp + bonus, block: 0, strength: 0, weak: 0, vulnerable: 0, burn: s.relics.includes('thermos') ? 3 : 0, awakened: false }, turn: 0, energy: 0, block: 0, strength: 0, armor: 0, evade: 0, counter: 0, counterHeat:0, morale: 0, lastFamily: null, retaliate:0, thorns:s.relics.includes('lens')?2:0, retain:s.relics.includes('cushion')?25:0, heatPower:s.relics.includes('thermos')?1:0, heatRetention:0, fusionPower:s.relics.includes('notebook')?2:0, turrets:[], turretSerial:0, queuedEnergy:0, queuedDraw:0, firstInstallUsed:false, counterHealUsed:false, draw: shuffle(s, s.deck.map(c => ({ ...c }))), hand: [], discard: [], exhaust: [], played: 0 };
         note(s, `${source.name} appears.`);
         startTurn(s);
     }
     function startTurn(s) {
         const b = s.battle;
         b.lastFamily = null;
-        b.turn++; b.energy = 3 + (b.turn === 1 && s.relics.includes('battery') ? 1 : 0);
-        b.block = b.armor + (b.turn === 1 && s.relics.includes('cushion') ? 5 : 0);
-        draw(s, 5 + (b.turn === 1 && s.relics.includes('notebook') ? 1 : 0));
+        b.counterHealUsed=false;
+        b.turn++; b.energy = 3 + b.queuedEnergy; b.queuedEnergy=0;
+        b.block = Math.floor(b.block*b.retain/100) + b.armor + (b.turn === 1 && s.relics.includes('cushion') ? 5 : 0);
+        draw(s, 5 + b.queuedDraw + (b.turn === 1 && s.relics.includes('notebook') ? 1 : 0)); b.queuedDraw=0;
     }
     function visit(s, id) {
         if (s.phase !== 'map' || !s.available.includes(id)) return false;
@@ -205,7 +223,7 @@
     function win(s) {
         if (s.phase !== 'battle') return;
         s.wins++;
-        if (s.relics.includes('moss')) s.hp = Math.min(s.maxHp, s.hp + 5);
+        if (s.relics.includes('moss')) s.hp = Math.min(s.maxHp, s.hp + 4);
         note(s, `${ENEMIES[s.battle.enemy.id].name} defeated!`);
         if (s.node.type === 'boss') { s.phase = 'victory'; return; }
         const gold = s.node.type === 'elite' ? 38 : 20;
@@ -232,12 +250,77 @@
         if (damage) emit({ target: 'enemy', kind: 'damage', amount: damage, ...(options.source ? { source: options.source } : {}) });
         return damage;
     }
+    function applyHeat(s, amount, emit) {
+        if (!amount) return;
+        const total=amount+s.battle.heatPower;
+        s.battle.enemy.burn+=total;
+        emit({target:'enemy',kind:'heat',amount:total});
+    }
+    function heatTick(s, emit) {
+        const amount=Math.min(s.battle.enemy.hp,s.battle.enemy.burn);
+        if (amount>0) { s.battle.enemy.hp-=amount; emit({target:'enemy',kind:'damage',amount,source:'heat'}); }
+    }
+    function turretDescription(t) {
+        const p=t.power;
+        return {pulse:`${p} damage`,shield:`${p} Block`,rail:`${p} piercing damage`,scatter:`${p} damage × 3`,suppressor:`${p} Weak`,repair:`${p} HP`,bastion:`${p} damage + ${p} Block`,supply:`+${p} next-turn Energy`,recon:`+${p} next-turn draw`}[t.type];
+    }
+    function activateTurrets(s, emit, turrets=s.battle.turrets) {
+        const b=s.battle;
+        for (const t of turrets) {
+            if (b.enemy.hp<=0) break;
+            emit({target:'player',kind:'turret',amount:t.power,turret:t.id});
+            if (['pulse','rail','bastion','scatter'].includes(t.type)) for(let hit=0;hit<(t.type==='scatter'?3:1);hit++) damageEnemy(s,t.power,emit,{pierce:t.type==='rail',source:'turret'});
+            if (['shield','bastion'].includes(t.type)) { b.block+=t.power;emit({target:'player',kind:'block',amount:t.power}); }
+            if(t.type==='suppressor') b.enemy.weak+=t.power;
+            if(t.type==='repair') { const amount=Math.min(s.maxHp-s.hp,t.power);s.hp+=amount;if(amount)emit({target:'player',kind:'heal',amount}); }
+            if(t.type==='supply') b.queuedEnergy=Math.min(30,b.queuedEnergy+t.power);
+            if(t.type==='recon') b.queuedDraw=Math.min(30,b.queuedDraw+t.power);
+        }
+    }
+    function scrapTurret(s,id) {
+        if(s.phase!=='battle')return false;
+        const i=s.battle.turrets.findIndex(t=>t.id===id);
+        if(i<0)return false;
+        const [t]=s.battle.turrets.splice(i,1);note(s,`${TURRETS[t.type].name} dismantled. Slot freed; no Energy or card is refunded.`);return true;
+    }
+    function fusionMaterial(c) {
+        return {attack:c.fusionAttack ?? ((c.damage||0)*(c.hits||1)+(c.burn||0)),block:c.fusionBlock ?? (c.block||0),burn:c.fuseBurn||0,weak:c.fuseWeak||0,vulnerable:c.fuseVulnerable||0,draw:c.fuseDraw||0,evade:c.fuseEvade||0};
+    }
+    function fusionPreview(s, indices) {
+        if(s.phase!=='battle'||!Array.isArray(indices)||indices.length!==2||indices.some(i=>!Number.isInteger(i))||indices[0]===indices[1])return null;
+        const b=s.battle,instances=indices.map(i=>b.hand[i]);if(instances.some(c=>!c))return null;
+        const cards=instances.map(c=>card(c.id,c.upgraded));
+        if(s.archetype!=='multimodal'&&!cards.some(c=>c.family==='multimodal'))return null;
+        const parts=cards.map(fusionMaterial),attack=parts.reduce((n,p)=>n+p.attack,0)+b.fusionPower;
+        return {cost:1,damage:Math.floor((attack+b.strength)*(b.enemy.vulnerable>0?1.5:1)*(b.morale>0?1.25:1)),block:parts.reduce((n,p)=>n+p.block,0)+b.fusionPower,burn:parts.reduce((n,p)=>n+p.burn,0),weak:parts.reduce((n,p)=>n+p.weak,0),vulnerable:parts.reduce((n,p)=>n+p.vulnerable,0),draw:parts.reduce((n,p)=>n+p.draw,0),evade:parts.some(p=>p.evade)?1:0};
+    }
+    function fuse(s, indices, emit=()=>{}) {
+        const result=fusionPreview(s,indices);if(!result||s.battle.energy<result.cost)return false;
+        const b=s.battle,materials=indices.map(i=>b.hand[i]);
+        b.energy-=result.cost;[...indices].sort((a,b)=>b-a).forEach(i=>b.hand.splice(i,1));
+        damageEnemy(s,result.damage,emit,{source:'multimodal'}); b.block+=result.block;
+        if(result.block)emit({target:'player',kind:'block',amount:result.block});
+        applyHeat(s,result.burn,emit);b.enemy.weak+=result.weak;b.enemy.vulnerable+=result.vulnerable;
+        if(result.evade){b.evade=1;emit({target:'player',kind:'evasion',amount:1});}
+        // Material card effects do not also play; draw resolves before materials enter discard.
+        draw(s,result.draw);
+        for(const instance of materials)(card(instance.id,instance.upgraded).exhaust?b.exhaust:b.discard).push(instance);
+        b.played++;b.lastFamily='multimodal';
+        note(s,`Fusion · ${materials.map(c=>card(c.id,c.upgraded).name).join(' + ')} · damage ${result.damage} / Block +${result.block}.`);
+        check(s);return true;
+    }
+    function retaliation(s, amount, emit) {
+        if(!amount)return;
+        damageEnemy(s,amount,emit,{source:'counter'});
+        const b=s.battle;
+        if(s.relics.includes('moss')&&!b.counterHealUsed){b.counterHealUsed=true;const healed=Math.min(1,s.maxHp-s.hp);s.hp+=healed;if(healed)emit({target:'player',kind:'heal',amount:healed});}
+    }
     function play(s, index, emit = () => {}) {
         if (s.phase !== 'battle' || !Number.isInteger(index)) return false;
         const b = s.battle, instance = b.hand[index];
         if (!instance) return false;
         const c = card(instance.id, instance.upgraded), e = b.enemy;
-        if (c.cost > b.energy) return false;
+        if (c.cost > b.energy || (c.install && (!TURRETS[c.install] || b.turrets.length>=TURRET_LIMIT))) return false;
         b.energy -= c.cost; b.hand.splice(index, 1); b.played++;
         let dealt = 0;
         if (c.heatBurst) {
@@ -245,12 +328,24 @@
             dealt += damageEnemy(s, amount, emit, { pierce: true, source: 'thermal' });
         }
         const crossBonus = c.crossBonus && b.lastFamily && b.lastFamily !== c.family ? c.crossBonus : 0;
-        if (c.damage) for (let hit = 0; hit < (c.hits || 1); hit++) {
-            const amount = Math.floor((c.damage + crossBonus + b.strength) * (e.vulnerable > 0 ? 1.5 : 1) * (b.morale > 0 ? 1.25 : 1));
+        if (c.damage || c.shieldStrike) for (let hit = 0; hit < (c.hits || 1); hit++) {
+            const amount = Math.floor(((c.damage||0) + (c.shieldStrike?Math.floor(b.block*c.shieldStrike):0) + crossBonus + b.strength) * (e.vulnerable > 0 ? 1.5 : 1) * (b.morale > 0 ? 1.25 : 1));
             dealt += damageEnemy(s, amount, emit, { pierce: c.pierce, source: c.research ? c.family : undefined });
         }
         b.block += c.block || 0; b.energy += c.energy || 0; b.strength += c.strength || 0; b.armor += c.armor || 0;
-        e.burn += c.burn || 0; e.weak += c.weak || 0; e.vulnerable += c.vulnerable || 0;
+        applyHeat(s,c.burn||0,emit);
+        if(c.heatMultiply){const extra=Math.floor(e.burn*c.heatMultiply/100);e.burn+=extra;if(extra)emit({target:'enemy',kind:'heat',amount:extra});}
+        for(let i=0;i<(c.heatTick||0)&&e.hp>0;i++)heatTick(s,emit);
+        b.retaliate+=c.retaliate||0;b.thorns+=c.thorns||0;b.retain=Math.min(75,b.retain+(c.retain||0));
+        b.heatPower+=c.heatPower||0;b.heatRetention=Math.max(b.heatRetention,c.heatRetention||0);b.fusionPower+=c.fusionPower||0;
+        if(c.turretBuff)for(const t of b.turrets)t.power=Math.min(turretCap(t.type),t.power+c.turretBuff);
+        if(c.install){
+            const t={id:++b.turretSerial,type:c.install,power:Math.min(turretCap(c.install),c.turretPower)};
+            b.turrets.push(t);emit({target:'player',kind:'install',amount:t.power,turret:t.id});
+            if(s.relics.includes('battery')&&!b.firstInstallUsed){b.firstInstallUsed=true;activateTurrets(s,emit,[t]);}
+        }
+        for(let i=0;i<(c.triggerTurrets||0)&&e.hp>0;i++)activateTurrets(s,emit);
+        e.weak += c.weak || 0; e.vulnerable += c.vulnerable || 0;
         if (c.morale) {
             b.morale = Math.max(b.morale || 0, c.morale);
             emit({ target: 'player', kind: 'morale', amount: c.morale });
@@ -258,54 +353,52 @@
         if (c.evade) {
             b.evade = 1;
             b.counter = Math.max(b.counter || 0, c.counter || 0);
+            b.counterHeat=Math.max(b.counterHeat,c.counterHeat||0);
             emit({ target: 'player', kind: 'evasion', amount: 1 });
         }
         const healed = Math.min(s.maxHp - s.hp, c.heal || 0);
         if (healed) emit({ target: 'player', kind: 'heal', amount: healed });
         if (c.self) emit({ target: 'player', kind: 'damage', amount: Math.min(s.hp + healed, c.self) });
         if (c.block) emit({ target: 'player', kind: 'block', amount: c.block });
-        if (c.burn) emit({ target: 'enemy', kind: 'heat', amount: c.burn });
+        if(c.retaliate||c.thorns)emit({target:'player',kind:'retaliation',amount:(c.retaliate||0)+(c.thorns||0)});
         s.hp = s.hp + healed - (c.self || 0);
         b.lastFamily = c.family;
         if (c.draw) draw(s, c.draw);
         // Resolve draw before discarding: a card cannot immediately draw itself.
         (c.exhaust ? b.exhaust : b.discard).push(instance);
-        note(s, `${c.name}${instance.upgraded ? '+' : ''}${c.damage || c.heatBurst ? ` · damage ${dealt}` : ''}${c.block ? ` · Block +${c.block}` : ''}${c.evade ? ` · Evasion ready${b.counter ? ` / counter ${b.counter}` : ''}` : ''}.`);
+        note(s, `${c.name}${instance.upgraded ? '+' : ''}${c.damage || c.shieldStrike || c.heatTick || c.heatBurst ? ` · damage ${dealt}` : ''}${c.block ? ` · Block +${c.block}` : ''}${c.evade ? ` · Evasion ready${b.counter ? ` / counter ${b.counter}` : ''}` : ''}.`);
         check(s); return true;
     }
     function endTurn(s, emit = () => {}) {
         if (s.phase !== 'battle') return false;
-        const b = s.battle, e = b.enemy;
-        b.discard.push(...b.hand); b.hand = [];
-        // Heat bypasses armor. A heat kill cancels the enemy intent.
-        if (e.burn > 0) { note(s, `Heat damage: ${e.burn}.`); emit({ target: 'enemy', kind: 'damage', amount: Math.min(e.hp, e.burn), source: 'heat' }); e.hp -= e.burn; e.burn--; if (check(s)) return true; }
-        const move = intent(s);
-        let lost = 0;
-        for (let hit = 0; hit < move.hits; hit++) {
-            if (move.damage > 0 && b.evade > 0) {
-                b.evade = 0;
-                const counter = b.counter || 0; b.counter = 0;
-                emit({ target: 'player', kind: 'evade', amount: move.damage });
-                note(s, `Evaded ${move.damage} damage${counter ? ` · counter ${counter}` : ''}.`);
-                if (counter) damageEnemy(s, counter, emit, { source: 'counter' });
-                // A lethal counter cancels the remaining enemy hits and its buffs.
-                if (e.hp <= 0) { s.hp -= lost; check(s); return true; }
-                continue;
+        const b=s.battle,e=b.enemy;
+        b.discard.push(...b.hand);b.hand=[];
+        activateTurrets(s,emit);if(check(s))return true;
+        if(e.burn>0){heatTick(s,emit);if(!b.heatRetention)e.burn=Math.max(0,e.burn-1);if(check(s))return true;}
+        const move=intent(s);let lost=0;
+        for(let hit=0;hit<move.hits;hit++){
+            if(move.damage<=0)continue;
+            if(b.evade){
+                b.evade=0;const counter=b.counter,heat=b.counterHeat;b.counter=0;b.counterHeat=0;
+                emit({target:'player',kind:'evade',amount:move.damage});
+                note(s,`Evaded ${move.damage} damage.`);retaliation(s,counter,emit);applyHeat(s,heat,emit);
+            }else{
+                const blocked=Math.min(b.block,move.damage);b.block-=blocked;
+                const damage=Math.min(s.hp,move.damage-blocked);s.hp-=damage;lost+=damage;
+                if(blocked)emit({target:'player',kind:'absorb',amount:blocked});
+                if(damage)emit({target:'player',kind:'damage',amount:damage});
+                // Dead actors cannot counter or heal themselves back to life.
+                if(s.hp<=0){check(s);return true;}
+                retaliation(s,b.retaliate+b.thorns,emit);
             }
-            const blocked = Math.min(b.block, move.damage); b.block -= blocked;
-            const damage = Math.min(Math.max(0, s.hp - lost), move.damage - blocked);
-            if (blocked) emit({ target: 'player', kind: 'absorb', amount: blocked });
-            if (damage) emit({ target: 'player', kind: 'damage', amount: damage });
-            lost += move.damage - blocked;
+            if(check(s))return true;
         }
-        s.hp -= lost; e.weak = Math.max(0, e.weak - 1); e.vulnerable = Math.max(0, e.vulnerable - 1);
-        // Enemy armor lasts through the next player turn, then is replaced.
-        if (move.block) emit({ target: 'enemy', kind: 'block', amount: move.block });
-        e.block = move.block || 0; e.strength += move.strength || 0;
-        note(s, `Enemy action · HP lost ${lost}${move.block ? ` · enemy Block +${move.block}` : ''}${move.strength ? ` · enemy Amplify +${move.strength}` : ''}.`);
-        b.morale = Math.max(0, (b.morale || 0) - 1);
-        if (!check(s)) startTurn(s);
-        return true;
+        b.retaliate=0;
+        e.weak=Math.max(0,e.weak-1);e.vulnerable=Math.max(0,e.vulnerable-1);
+        e.block=move.block||0;e.strength+=move.strength||0;
+        if(move.block)emit({target:'enemy',kind:'block',amount:move.block});
+        note(s,`Enemy action · HP lost ${lost}${move.block?` · enemy Block +${move.block}`:''}.`);
+        b.morale=Math.max(0,b.morale-1);if(!check(s))startTurn(s);return true;
     }
     function reward(s, id = null) {
         if (s.phase !== 'reward' || (id !== null && !s.reward.cards.includes(id))) return false;
@@ -349,11 +442,20 @@
             if (s.phase === 'battle') {
                 const b = s.battle;
                 if (!b || !b.enemy || !ENEMIES[b.enemy.id] || ![b.hand,b.draw,b.discard,b.exhaust].every(pile)) return null;
+                const defaults={retaliate:0,thorns:0,retain:0,heatPower:0,heatRetention:0,fusionPower:0,counterHeat:0,queuedEnergy:0,queuedDraw:0,turretSerial:0};
+                for(const [field,value] of Object.entries(defaults)){
+                    if(b[field]===undefined)b[field]=value;
+                    const cap=field==='retain'?75:field==='heatRetention'?1:['queuedEnergy','queuedDraw'].includes(field)?30:1000000;
+                    if(!Number.isSafeInteger(b[field])||b[field]<0||b[field]>cap)return null;
+                }
+                for(const field of ['firstInstallUsed','counterHealUsed']){if(b[field]===undefined)b[field]=false;if(typeof b[field]!=='boolean')return null;}
+                if(b.turrets===undefined)b.turrets=[];
+                if(!Array.isArray(b.turrets)||b.turrets.length>TURRET_LIMIT||b.turrets.some(t=>!t||!TURRETS[t.type]||!Number.isSafeInteger(t.id)||t.id<1||t.id>b.turretSerial||!Number.isInteger(t.power)||t.power<1||t.power>turretCap(t.type))||new Set(b.turrets.map(t=>t.id)).size!==b.turrets.length)return null;
                 for (const field of ['evade','counter','morale']) {
                     if (b[field] === undefined) b[field] = 0;
                     if (!Number.isInteger(b[field]) || b[field] < 0 || b[field] > (field === 'evade' ? 1 : field === 'counter' ? 100 : 100)) return null;
                 }
-                if (b.counter && !b.evade) return null;
+                if ((b.counter || b.counterHeat) && !b.evade) return null;
                 if (b.lastFamily === undefined) b.lastFamily = null;
                 if (b.lastFamily !== null && !['vibration','thermal','multimodal','generation','neutral','shared'].includes(b.lastFamily)) return null;
                 if (![b.turn,b.energy,b.block,b.strength,b.armor,b.enemy.hp,b.enemy.maxHp,b.enemy.block,b.enemy.strength,b.enemy.weak,b.enemy.vulnerable,b.enemy.burn].every(n => Number.isFinite(n) && n >= 0)) return null;
@@ -362,7 +464,7 @@
             return s;
         } catch { return null; }
     }
-    const api = { CARDS, RESEARCH, ARCHETYPES, RELICS, ENEMIES, create, card, cardText, visit, play, endTurn, intent, reward, camp, event, leaveTreasure, restore };
+    const api = { TURRETS, TURRET_LIMIT, turretDescription, fusionMaterial, fusionPreview, fuse, scrapTurret, CARDS, RESEARCH, ARCHETYPES, RELICS, ENEMIES, create, card, cardText, visit, play, endTurn, intent, reward, camp, event, leaveTreasure, restore };
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     else root.HapticRun = api;
 })(globalThis);

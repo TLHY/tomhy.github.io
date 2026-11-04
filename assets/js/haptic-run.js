@@ -2,7 +2,7 @@
     const E = HapticRun, KEY = 'tomhy_haptic_run_v1';
     const app = document.getElementById('run-app'), dialog = document.getElementById('run-dialog');
     const escape = v => String(v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-    let state = null, saved = null, choosing = null, busy = false, selectedArchetype = 'vibration', researchFamily = 'vibration';
+    let state = null, saved = null, choosing = null, busy = false, selectedArchetype = 'vibration', researchFamily = 'vibration', fusionSelecting = false, fusionSelected = [];
     try { saved = E.restore(localStorage.getItem(KEY)); } catch { /* Saving is optional. */ }
     const labels = { combat:'Battle', elite:'Elite', camp:'Rest site', treasure:'Treasure', event:'Event', boss:'Final Boss' };
     const symbols = { combat:'⚔', elite:'◆', camp:'☾', treasure:'▣', event:'?', boss:'♛' };
@@ -18,12 +18,14 @@
     }
     function cardMarkup(instance, action = '', index = '', disabled = false) {
         const c = E.card(instance.id, instance.upgraded);
-        return `<${action ? 'button' : 'article'} ${action ? `type="button" data-action="${action}" data-index="${index}" ${disabled ? 'disabled' : ''}` : ''} data-family="${c.family}" class="lab-card ${c.type} ${c.upgraded ? 'upgraded' : ''}">
+        const picking=action==='play'&&fusionSelecting;
+        if(picking){action='fusion-pick';disabled=false;}
+        return `<${action ? 'button' : 'article'} ${action ? `type="button" data-action="${action}" data-index="${index}" ${disabled ? 'disabled' : ''}` : ''} data-family="${c.family}" ${picking ? `aria-pressed="${fusionSelected.includes(Number(index))}"` : ''} class="lab-card ${c.type} ${c.upgraded ? 'upgraded' : ''}">
             <div class="card-cap"><span class="card-cost" aria-label="Energy ${c.cost}">${c.cost}</span><span>${familyName(c.family)} · ${typeNames[c.type]}${c.exhaust ? ' · Exhaust' : ''}</span></div>
             <span class="card-glyph" aria-hidden="true">${c.type === 'attack' ? '⌁' : c.type === 'power' ? '✦' : '◈'}</span>
             <h3>${escape(c.name)}${c.upgraded ? '+' : ''}</h3><p>${escape(E.cardText(c))}</p>
             ${c.research ? `<span class="research-card-tag">PAPER-INSPIRED · ${escape(E.RESEARCH[c.research].citation)}</span>` : ''}
-            ${action === 'play' ? `<span class="card-footer">${disabled ? 'Not enough Energy' : 'Play card'}</span>` : action ? '<span class="card-footer">Choose</span>' : ''}
+            ${picking ? `<span class="card-footer">${fusionSelected.includes(Number(index)) ? 'Selected ✓' : 'Select as material'} · ${E.fusionMaterial(c).attack} ATK / ${E.fusionMaterial(c).block} Block</span>` : action === 'play' ? `<span class="card-footer">${disabled ? (c.install&&state?.battle?.turrets.length>=E.TURRET_LIMIT?'Turret slots full':'Not enough Energy') : 'Play card'}</span>` : action ? '<span class="card-footer">Choose</span>' : ''}
         </${action ? 'button' : 'article'}>`;
     }
     function researchDialog() {
@@ -38,7 +40,7 @@
         showDialog(`Your deck · ${state.deck.length} cards`, `<p>Upgraded cards are marked +. This is your full expedition deck, not your current hand.</p><div class="card-gallery">${state.deck.map(c => cardMarkup(c)).join('')}</div>`);
     }
     function helpDialog() {
-        showDialog('Expedition guide', `<p>Play as Mochi, the little slime from the homepage. Choose Vibration (multi-hit), Thermal (heat and defense), Multimodal (draw and vulnerability), or HapticGeneration (sampling and refinement). Mix families through card rewards.</p><ol class="help-list"><li><strong>Routes:</strong> Choose a highlighted connected node. Travel upward; completed rooms cannot be revisited.</li><li><strong>Combat:</strong> Each turn starts with 3 Energy and 5 cards. Attack enemies and gain Block against their next action. Their intent is always visible.</li><li><strong>End turn:</strong> Discard your remaining hand. The enemy acts, your Block resets, and a new turn begins. When your draw pile is empty, shuffle the discard pile.</li><li><strong>Vulnerable / Weak:</strong> Vulnerable increases incoming attack damage by 50%. Weak reduces outgoing attack damage by 25%. Each stack lasts one enemy action.</li><li><strong>Heat / Amplify:</strong> Heat deals damage before the enemy acts, ignores Block, then decreases by 1. Amplify adds damage to each hit.</li><li><strong>Morale:</strong> Attack cards deal 25% more damage for the listed number of turns. Morale refreshes to the longer duration when reapplied; counterattacks and Heat are unchanged.</li><li><strong>Evasion:</strong> Avoid one incoming hit, then consume Evasion. It persists through non-attacking turns and does not stack. Thermal Masking also counters; enemy Block reduces counter damage, while Amplify and Vulnerable do not modify it. A lethal counter cancels the remaining enemy hits.</li><li><strong>Combo cards:</strong> Guided Toolpath gains bonus damage when your previous card this turn belonged to another family, including Neutral. Conductive Release consumes all enemy Heat for armor-bypassing damage; it does not gain Amplify, Morale, or Vulnerable bonuses.</li><li><strong>Research cards:</strong> Use the Research cards button for source concepts, game adaptations, and upgrade effects.</li><li><strong>Rewards:</strong> Win Gold and choose 1 of 3 cards, or skip to keep your deck focused. Elites also guarantee a relic.</li><li><strong>Rest / Events:</strong> Heal or permanently upgrade a card. Spend Gold to heal at an event, or trade HP to remove a card.</li><li><strong>Final encounter:</strong> HP, deck, and relics persist between battles. Defeat the boss at the seventh node to win. At 0 HP, the run ends.</li></ol><p class="muted">Relics represent haptic devices; their bonuses are fictional game rules. Fictional game rules inspired by haptics research, not a simulation of real perceptual effects. No sound or device vibration. Progress is saved in this browser when storage is available.</p>`);
+        showDialog('Expedition guide', `<p>Play as Mochi, the little slime from the homepage. Choose Vibration (shield/tank/counters), Thermal (Heat damage over time), Multimodal (two-card fusion), or HapticGeneration (installed turrets). Mix families through card rewards.</p><ol class="help-list"><li><strong>Routes:</strong> Choose a highlighted connected node. Travel upward; completed rooms cannot be revisited.</li><li><strong>Combat:</strong> Each turn starts with 3 Energy and 5 cards. Attack enemies and gain Block against their next action. Their intent is always visible.</li><li><strong>End turn:</strong> Discard your remaining hand. The enemy acts, your Block resets, and a new turn begins. When your draw pile is empty, shuffle the discard pile.</li><li><strong>Vulnerable / Weak:</strong> Vulnerable increases incoming attack damage by 50%. Weak reduces outgoing attack damage by 25%. Each stack lasts one enemy action.</li><li><strong>Heat / Amplify:</strong> Heat deals damage before the enemy acts, ignores Block, then decreases by 1. Amplify adds damage to each hit.</li><li><strong>Morale:</strong> Attack cards deal 25% more damage for the listed number of turns. Morale refreshes to the longer duration when reapplied; counterattacks and Heat are unchanged.</li><li><strong>Evasion:</strong> Avoid one incoming hit, then consume Evasion. It persists through non-attacking turns and does not stack. Thermal Masking also counters; enemy Block reduces counter damage, while Amplify and Vulnerable do not modify it. A lethal counter cancels the remaining enemy hits.</li><li><strong>Tank and Heat:</strong> Retaliation counters every incoming hit, including fully blocked hits, but not evaded hits. A fatal hit prevents retaliation. Temporary Retaliation expires after the enemy action; permanent Retaliation lasts this battle. Retain preserves a percentage of remaining Block (maximum 75%). Heat triggers before the enemy; some cards trigger extra non-consuming ticks or prevent decay.</li><li><strong>Fusion:</strong> Select two hand cards, preview, and confirm for 1 Energy. Materials move to discard or Exhaust; normal material effects do not also play. Multimodal decks can fuse any pair; other decks must include a Multimodal material. The Electrotactile Array adds +2 attack and defense.</li><li><strong>Turrets:</strong> Install at most three; new turrets activate at that turn end, before Heat and the enemy. Turrets persist only for the current encounter. Dismantle freely to clear a slot, with no refund. Supply/Recon queue resources for the next turn. Firmware caps: damage/shields 20, repair 4, suppression/supply/recon 3. Novint Falcon immediately activates the first installation each battle.</li><li><strong>Combo cards:</strong> Fusion bonuses are shown on the selected material cards. Conductive Release triggers Heat twice without consuming it; Heat and turrets do not gain direct-card Amplify or Morale bonuses.</li><li><strong>Research cards:</strong> Use the Research cards button for source concepts, game adaptations, and upgrade effects.</li><li><strong>Rewards:</strong> Win Gold and choose 1 of 3 cards, or skip to keep your deck focused. Elites also guarantee a relic.</li><li><strong>Rest / Events:</strong> Heal or permanently upgrade a card. Spend Gold to heal at an event, or trade HP to remove a card.</li><li><strong>Final encounter:</strong> HP, deck, and relics persist between battles. Defeat the boss at the seventh node to win. At 0 HP, the run ends.</li></ol><p class="muted">Relics represent haptic devices; their bonuses are fictional game rules. Fictional game rules inspired by haptics research, not a simulation of real perceptual effects. No sound or device vibration. Progress is saved in this browser when storage is available.</p>`);
     }
     function deviceIcon(type) {
         const paths = {
@@ -117,6 +119,7 @@
         const counts = { player: 0, enemy: 0 };
         let duration = 0;
         for (const effect of effects) {
+            if(effect.kind==='turret'){const t=app.querySelector(`[data-turret-id="${effect.turret}"]`);if(t&&!reduced)t.animate([{filter:'brightness(1)'},{filter:'brightness(1.6)'},{filter:'brightness(1)'}],{duration:400});continue;}
             const actor = app.querySelector(effect.target === 'player' ? '.mochi-player' : '.enemy-station .monster');
             if (!actor) continue;
             const row = counts[effect.target]++;
@@ -125,7 +128,7 @@
             const number = document.createElement('span');
             number.className = `combat-number fx-${effect.kind}`;
             number.setAttribute('aria-hidden', 'true');
-            const labels = { damage: `−${effect.amount} HP`, heal: `+${effect.amount} HP`, block: `+${effect.amount} Block`, absorb: `${effect.amount} Blocked`, heat: `+${effect.amount} Heat`, morale: `Morale ${effect.amount} turns`, evasion: 'Evasion ready', evade: `Evaded ${effect.amount}` };
+            const labels = { damage: `−${effect.amount} HP`, heal: `+${effect.amount} HP`, block: `+${effect.amount} Block`, absorb: `${effect.amount} Blocked`, heat: `+${effect.amount} Heat`, morale: `Morale ${effect.amount} turns`, retaliation:`+${effect.amount} Counter`, install:'Turret installed', evasion: 'Evasion ready', evade: `Evaded ${effect.amount}` };
             number.textContent = labels[effect.kind];
             number.style.setProperty('--fx-delay', `${delay}ms`);
             number.style.setProperty('--fx-row', row % 3);
@@ -149,6 +152,20 @@
         }
         return duration;
     }
+    function turretIcon(type) {
+        return `<svg viewBox="0 0 64 48" class="turret-art" aria-hidden="true"><path d="M12 44H52L46 34H18Z" fill="#49616a"/><path d="M27 18H37V36H27Z" fill="#97ad9b"/><path d="M15 10H43V25H15Z" fill="#a7c5b5" stroke="#294a49" stroke-width="2"/><path d="M42 14H58V21H42Z" fill="#657f89"/><text x="27" y="22" text-anchor="middle" fill="#203c31" font-size="15">${escape(E.TURRETS[type].symbol)}</text></svg>`;
+    }
+    function turretMarkup() {
+        const b=state.battle;
+        if(!b.turrets.length&&state.archetype!=='generation'&&!b.hand.some(c=>E.card(c.id,c.upgraded).install))return '';
+        return `<section class="turret-field" aria-label="Installed turrets"><div class="turret-heading"><strong>Turret network · ${b.turrets.length} / ${E.TURRET_LIMIT}</strong><span>Activate at turn end, before the enemy. Dismantling refunds nothing.</span></div><div class="turret-grid">${b.turrets.map(t=>`<article class="turret-card" data-turret-id="${t.id}">${turretIcon(t.type)}<strong>${escape(E.TURRETS[t.type].name)}</strong><span>${escape(E.turretDescription(t))}</span><button data-action="scrap-turret" data-id="${t.id}" ${fusionSelecting?'disabled':''} aria-label="Dismantle ${escape(E.TURRETS[t.type].name)}">Dismantle</button></article>`).join('')}${Array.from({length:E.TURRET_LIMIT-b.turrets.length},()=>'<div class="turret-empty">Empty installation slot</div>').join('')}</div>${b.turrets.length===E.TURRET_LIMIT?'<p class="turret-full">Network full. Dismantle a turret before installing another.</p>':''}</section>`;
+    }
+    function fusionMarkup() {
+        const b=state.battle;
+        if(!fusionSelecting)return state.archetype==='multimodal'||b.hand.some(c=>E.card(c.id,c.upgraded).family==='multimodal')?`<div class="fusion-toolbar"><button data-action="fusion-start" ${b.hand.length<2||b.energy<1?'disabled':''}>Fuse 2 hand cards · 1 Energy</button><span>Choose two materials for a combined attack and shield.</span></div>`:'';
+        const result=E.fusionPreview(state,fusionSelected);
+        return `<section class="fusion-panel" aria-label="Card fusion"><h3>Choose two materials · ${fusionSelected.length} / 2</h3><p>Only the listed material values and fusion bonuses apply. Materials are discarded or exhausted; their normal play effects do not also activate.</p><div class="fusion-preview" role="status" aria-live="polite">${result?`${result.damage} damage + ${result.block} Block · 1 Energy${result.burn?` · ${result.burn} Heat`:''}${result.weak?` · ${result.weak} Weak`:''}${result.vulnerable?` · ${result.vulnerable} Vulnerable`:''}${result.draw?` · draw ${result.draw}`:''}${result.evade?' · Evasion':''}`:fusionSelected.length===2?'Include a Multimodal material in this deck.':'Select two cards below to preview the result.'}</div><button class="primary" data-action="fusion-confirm" ${!result||b.energy<1?'disabled':''}>Confirm fusion</button><button data-action="fusion-cancel">Cancel</button></section>`;
+    }
     function bossReview(enemy, turn) {
         if (enemy.id !== 'boss') return '';
         const quotes = enemy.awakened ? [
@@ -166,11 +183,12 @@
     }
     function battleMarkup() {
         const b = state.battle, e = b.enemy, enemy = E.ENEMIES[e.id], move = E.intent(state);
+        const mechanicStatus=[b.retaliate+b.thorns?`Counter ${b.retaliate+b.thorns}`:'',b.retain?`Retain ${b.retain}%`:'',b.heatPower?`Heat boost +${b.heatPower}`:'',b.fusionPower?`Fusion +${b.fusionPower}`:''].filter(Boolean).join(' · ')||E.ARCHETYPES[state.archetype].subtitle;
         const morale = b.morale ? `Morale +25% · ${b.morale} turns` : '';
         const evasion = b.evade ? `Evasion ready${b.counter ? ` · Counter ${b.counter}` : ''}` : '';
         const intent = [move.damage ? `Attack ${move.damage}${move.hits > 1 ? ` × ${move.hits}` : ''}` : '', move.block ? `Block +${move.block}` : '', move.strength ? `Amplify +${move.strength}` : ''].filter(Boolean).join(' · ');
         const statuses = [[e.burn,'Heat'],[e.weak,'Weak'],[e.vulnerable,'Vulnerable'],[e.strength,'Amplify'],[e.block,'Block']].filter(([v]) => v > 0);
-        return `<section class="battle-panel"><div class="battle-meta"><span class="eyebrow">Floor ${state.node.floor + 1} · Turn ${b.turn}</span><button data-action="route">View route</button></div>${bossReview(e,b.turn)}<div class="arena"><div class="player-station"><span class="eyebrow">YOUR RESEARCH COMPANION</span><h2>Mochi</h2>${mochiHero()}<p>Block <strong>${b.block}</strong> · Amplify <strong>${b.strength}</strong>${b.armor ? ` · Block each turn +${b.armor}` : ''}</p><p class="muted">Your little research companion.<br>Manage cards and Energy to keep Mochi safe.</p></div><div class="enemy-station"><div class="intent" role="status" aria-label="Enemy intent">Next intent <strong>${escape(intent)}</strong></div>${monster(enemy)}<h2>${escape(enemy.name)}${e.awakened ? ' · Awakened' : ''}</h2><div class="hp-track" role="meter" aria-label="Enemy HP" aria-valuenow="${e.hp}" aria-valuemin="0" aria-valuemax="${e.maxHp}"><span style="width:${Math.max(0, e.hp / e.maxHp * 100)}%"></span><b>${e.hp} / ${e.maxHp}</b></div><div class="enemy-statuses">${statuses.map(([v,label]) => `<span>${label} ${v}</span>`).join('')}</div><p class="muted">${escape(enemy.description)}</p></div></div><div class="turn-bar"><span class="energy">Energy <strong>${b.energy}</strong> / 3</span><span class="player-defense">Block <strong>${b.block}</strong> · Amplify <strong>${b.strength}</strong>${evasion ? `<span class="evasion-status">${evasion}</span>` : ''}${morale ? `<span class="morale-status">${morale}</span>` : ''}</span><span class="pile-counts">Draw ${b.draw.length} · Discard ${b.discard.length} · Exhaust ${b.exhaust.length}</span><button class="primary" data-action="end">End turn →</button></div><div class="hand" aria-label="Hand">${b.hand.length ? b.hand.map((c,i) => cardMarkup(c,'play',i,E.card(c.id,c.upgraded).cost > b.energy)).join('') : '<p>Your hand is empty. End your turn to draw new cards.</p>'}</div><p class="muted small">Played cards go to the discard pile. Exhausted cards cannot be drawn again this battle.</p></section><details class="battle-log" open><summary>Expedition log</summary><ol>${state.log.slice(-4).map(t => `<li>${escape(t)}</li>`).join('')}</ol></details>`;
+        return `<section class="battle-panel"><div class="battle-meta"><span class="eyebrow">Floor ${state.node.floor + 1} · Turn ${b.turn}</span><button data-action="route">View route</button></div>${bossReview(e,b.turn)}<div class="arena"><div class="player-station"><span class="eyebrow">YOUR RESEARCH COMPANION</span><h2>Mochi</h2>${mochiHero()}<p>Block <strong>${b.block}</strong> · Amplify <strong>${b.strength}</strong>${b.armor ? ` · Block each turn +${b.armor}` : ''}</p><p class="muted">Your little research companion.<br>Manage cards and Energy to keep Mochi safe.</p></div><div class="enemy-station"><div class="intent" role="status" aria-label="Enemy intent">Next intent <strong>${escape(intent)}</strong></div>${monster(enemy)}<h2>${escape(enemy.name)}${e.awakened ? ' · Awakened' : ''}</h2><div class="hp-track" role="meter" aria-label="Enemy HP" aria-valuenow="${e.hp}" aria-valuemin="0" aria-valuemax="${e.maxHp}"><span style="width:${Math.max(0, e.hp / e.maxHp * 100)}%"></span><b>${e.hp} / ${e.maxHp}</b></div><div class="enemy-statuses">${statuses.map(([v,label]) => `<span>${label} ${v}</span>`).join('')}</div><p class="muted">${escape(enemy.description)}</p></div></div><div class="turn-bar"><span class="energy">Energy <strong>${b.energy}</strong> / 3</span><span class="player-defense">Block <strong>${b.block}</strong> · Amplify <strong>${b.strength}</strong>${evasion ? `<span class="evasion-status">${evasion}</span>` : ''}${morale ? `<span class="morale-status">${morale}</span>` : ''}</span><span class="pile-counts">Draw ${b.draw.length} · Discard ${b.discard.length} · Exhaust ${b.exhaust.length}</span><button class="primary" data-action="end" ${fusionSelecting?'disabled':''}>End turn →</button></div>${turretMarkup()}${fusionMarkup()}<div class="deck-status" aria-label="Deck mechanics">${mechanicStatus}${b.heatRetention?' · Heat does not decay':''}${b.counterHeat?` · Heat response ${b.counterHeat}`:''}</div><div class="hand" aria-label="Hand">${b.hand.length ? b.hand.map((c,i) => cardMarkup(c,'play',i,(E.card(c.id,c.upgraded).cost > b.energy || (E.card(c.id,c.upgraded).install && b.turrets.length>=E.TURRET_LIMIT)))).join('') : '<p>Your hand is empty. End your turn to draw new cards.</p>'}</div><p class="muted small">Played cards go to the discard pile. Exhausted cards cannot be drawn again this battle.</p></section><details class="battle-log" open><summary>Expedition log</summary><ol>${state.log.slice(-4).map(t => `<li>${escape(t)}</li>`).join('')}</ol></details>`;
     }
     function rewardMarkup() {
         const r = state.reward;
@@ -204,8 +222,15 @@
         const button = event.target.closest('button[data-action]');
         if (!button || button.disabled || busy) return;
         const action = button.dataset.action, index = Number(button.dataset.index);
+        if (state?.phase==='battle' && action==='fusion-start') { fusionSelecting=true;fusionSelected=[];render();announce('Select two hand cards for fusion.');app.querySelector('.hand button')?.focus();return; }
+        if (action==='fusion-cancel') {fusionSelecting=false;fusionSelected=[];render();app.querySelector('[data-action="fusion-start"]')?.focus();return;}
+        if (fusionSelecting && action==='fusion-pick') {
+            fusionSelected=fusionSelected.includes(index)?fusionSelected.filter(i=>i!==index):fusionSelected.length<2?[...fusionSelected,index]:fusionSelected;
+            render();app.querySelector(`[data-action="fusion-pick"][data-index="${index}"]`)?.focus({preventScroll:true});return;
+        }
+        if (fusionSelecting&&['end','play','scrap-turret'].includes(action))return;
         if (action === 'archetype' && !state && E.ARCHETYPES[button.dataset.id]) { selectedArchetype = button.dataset.id; render(); app.querySelector(`[data-action="archetype"][data-id="${selectedArchetype}"]`)?.focus({preventScroll:true}); return; }
-        if (action === 'choose-new') { if (dialog.open) dialog.close(); saved = state || saved; selectedArchetype = state?.archetype || selectedArchetype; state = null; choosing = null; render(); app.scrollIntoView({behavior:'instant'}); return; }
+        if (action === 'choose-new') { if (dialog.open) dialog.close(); saved = state || saved; selectedArchetype = state?.archetype || selectedArchetype; state = null; choosing = null; fusionSelecting=false;fusionSelected=[];render(); app.scrollIntoView({behavior:'instant'}); return; }
         if (action === 'help') { helpDialog(); return; }
         if (action === 'research') { researchFamily = state?.archetype || selectedArchetype; researchDialog(); return; }
         if (action === 'research-family' && [...Object.keys(E.ARCHETYPES),'neutral'].includes(button.dataset.family)) { researchFamily=button.dataset.family; researchDialog(); dialog.querySelector(`[data-family="${researchFamily}"][data-action="research-family"]`)?.focus(); return; }
@@ -224,6 +249,8 @@
         else if (state) {
             if (action === 'visit') changed = E.visit(state,button.dataset.id);
             if (action === 'play') changed = E.play(state,index,emit);
+            if (action === 'fusion-confirm') {changed=E.fuse(state,fusionSelected,emit);if(changed){fusionSelecting=false;fusionSelected=[];}}
+            if (action === 'scrap-turret') changed=E.scrapTurret(state,Number(button.dataset.id));
             if (action === 'end') changed = E.endTurn(state,emit);
             if (action === 'reward') changed = E.reward(state,button.dataset.index);
             if (action === 'skip') changed = E.reward(state);
@@ -242,7 +269,7 @@
             // Keep the last hit visible before replacing combat with rewards or defeat.
             if (before === 'battle' && state.phase !== 'battle' && effects.length) {
                 const duration = combatEffects(effects);
-                if (played?.research) researchEffect(played.family);
+                if (action==='fusion-confirm')researchEffect('multimodal');else if(played?.research||played?.install||played?.triggerTurrets) researchEffect(played.family);
                 app.setAttribute('aria-busy', 'true');
                 app.querySelectorAll('button').forEach(button => button.disabled = true);
                 await new Promise(resolve => setTimeout(resolve, duration));
@@ -251,10 +278,10 @@
             render(before !== state.phase || !!choosing || action === 'cancel');
             if (state.phase === 'battle') {
                 combatEffects(effects);
-                if (played?.research) researchEffect(played.family);
+                if (action==='fusion-confirm')researchEffect('multimodal');else if(played?.research||played?.install||played?.triggerTurrets) researchEffect(played.family);
             }
             if (state.phase === 'battle') {
-                const cue = action === 'end' ? (state.hp < oldHp ? 'hit' : effects.some(e => e.kind === 'evade') ? 'evade' : 'block') : played ? (played.damage || played.heatBurst ? 'attack' : played.heal ? 'heal' : played.evade ? 'evade' : 'block') : 'idle';
+                const cue = action === 'end' ? (state.hp < oldHp ? 'hit' : effects.some(e => e.kind === 'evade') ? 'evade' : 'block') : played ? (played.damage || played.shieldStrike || played.heatTick || played.heatBurst ? 'attack' : played.heal ? 'heal' : played.evade ? 'evade' : 'block') : action==='fusion-confirm' ? 'attack' : 'idle';
                 if (cue !== 'idle') animateBattle(cue);
             }
             announce(state.phase === 'battle' ? `${effects.map(e => `${e.target === 'player' ? 'Mochi' : 'Enemy'}: ${e.amount} ${e.kind}`).join('. ')}. ${state.log.at(-1)} Energy ${state.battle.energy}, Enemy HP ${state.battle.enemy.hp}.` : state.phase === 'map' ? 'Choose your next route.' : state.phase === 'reward' ? 'Victory! Choose your reward card.' : 'View updated.');
