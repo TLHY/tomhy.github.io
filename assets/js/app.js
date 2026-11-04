@@ -2203,12 +2203,9 @@ async function loadContent() {
         setText("home-header", data.home?.header);
         setText("home-badge", data.home?.badge);
         setText("profile-header", data.profile?.header);
-        setText("profile-badge", data.profile?.badge);
         setText("dock-profile-badge", data.profile?.dockBadge || "Profile");
         setText("publications-header", data.publications?.header);
-        setText("publications-badge", data.publications?.badge);
         setText("news-header", data.news?.header);
-        setText("news-badge", data.news?.badge);
 
         fillHomePreviews(data);
         fillProfileDock(data);
