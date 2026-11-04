@@ -2,11 +2,11 @@
     const E = HapticRun, KEY = 'tomhy_haptic_run_v1';
     const app = document.getElementById('run-app'), dialog = document.getElementById('run-dialog');
     const escape = v => String(v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-    let state = null, saved = null, choosing = null, busy = false, selectedArchetype = 'vibration';
+    let state = null, saved = null, choosing = null, busy = false, selectedArchetype = 'vibration', researchFamily = 'vibration';
     try { saved = E.restore(localStorage.getItem(KEY)); } catch { /* Saving is optional. */ }
     const labels = { combat:'Battle', elite:'Elite', camp:'Rest site', treasure:'Treasure', event:'Event', boss:'Final Boss' };
     const symbols = { combat:'⚔', elite:'◆', camp:'☾', treasure:'▣', event:'?', boss:'♛' };
-    const familyName = family => E.ARCHETYPES[family]?.name || 'Shared';
+    const familyName = family => family === 'neutral' ? 'Neutral' : E.ARCHETYPES[family]?.name || 'Shared';
     const typeNames = { attack:'Attack', skill:'Skill', power:'Power' };
     function persist() {
         try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* Browser storage may be disabled. */ }
@@ -18,21 +18,41 @@
     }
     function cardMarkup(instance, action = '', index = '', disabled = false) {
         const c = E.card(instance.id, instance.upgraded);
-        return `<${action ? 'button' : 'article'} ${action ? `type="button" data-action="${action}" data-index="${index}" ${disabled ? 'disabled' : ''}` : ''} class="lab-card ${c.type} ${c.upgraded ? 'upgraded' : ''}">
+        return `<${action ? 'button' : 'article'} ${action ? `type="button" data-action="${action}" data-index="${index}" ${disabled ? 'disabled' : ''}` : ''} data-family="${c.family}" class="lab-card ${c.type} ${c.upgraded ? 'upgraded' : ''}">
             <div class="card-cap"><span class="card-cost" aria-label="Energy ${c.cost}">${c.cost}</span><span>${familyName(c.family)} · ${typeNames[c.type]}${c.exhaust ? ' · Exhaust' : ''}</span></div>
             <span class="card-glyph" aria-hidden="true">${c.type === 'attack' ? '⌁' : c.type === 'power' ? '✦' : '◈'}</span>
             <h3>${escape(c.name)}${c.upgraded ? '+' : ''}</h3><p>${escape(E.cardText(c))}</p>
+            ${c.research ? `<span class="research-card-tag">PAPER-INSPIRED · ${escape(E.RESEARCH[c.research].citation)}</span>` : ''}
             ${action === 'play' ? `<span class="card-footer">${disabled ? 'Not enough Energy' : 'Play card'}</span>` : action ? '<span class="card-footer">Choose</span>' : ''}
         </${action ? 'button' : 'article'}>`;
+    }
+    function researchDialog() {
+        const fields = [...Object.keys(E.ARCHETYPES), 'neutral'];
+        const ids = Object.keys(E.CARDS).filter(id=>E.CARDS[id].family===researchFamily && ['special','neutral'].includes(E.CARDS[id].rarity));
+        showDialog('Research card library', `<p>Each field has ten distinct basic cards and ten special cards. Neutral research cards can support any deck. Cross-disciplinary papers may inspire different cards in more than one field.</p><p class="muted">Paper descriptions use the supplied research summaries. Neutral sources currently use the four publication entries on this homepage; the full HCI Tech Lab list and linked abstracts have not been independently checked. All combat effects are fictional adaptations.</p><div class="research-tabs" role="group" aria-label="Research field">${fields.map(f=>`<button data-action="research-family" data-family="${f}" aria-pressed="${f===researchFamily}">${escape(familyName(f))} · ${Object.values(E.CARDS).filter(c=>c.family===f&&['special','neutral'].includes(c.rarity)).length}</button>`).join('')}</div><div class="research-library">${ids.map(id=>{
+            const c=E.CARDS[id], r=E.RESEARCH[c.research];
+            return `<section class="research-entry">${cardMarkup({id,upgraded:false})}<div class="research-notes"><h3>${escape(r.title)}</h3><p class="muted">${escape(r.citation)}</p><p><strong>${r.evidence==='profile-entry'?'Publication title':'Supplied summary'}:</strong> ${escape(r.concept)}</p><p><strong>Game adaptation:</strong> ${escape(c.adaptation)}</p><p><strong>Upgrade:</strong> ${escape(E.cardText(E.card(id,true)))}</p><a href="${escape(r.link)}" target="_blank" rel="noopener noreferrer">${escape(r.linkLabel)} ↗</a></div></section>`;
+        }).join('')}</div><h2>Starter deck catalogs</h2>${Object.entries(E.ARCHETYPES).map(([id,a]) => `<details class="basic-catalog"><summary>${escape(a.name)} · 10 basic cards</summary><div class="card-gallery">${a.cards.map(id=>cardMarkup({id,upgraded:false})).join('')}</div></details>`).join('')}`);
     }
     function deckDialog() {
         showDialog(`Your deck · ${state.deck.length} cards`, `<p>Upgraded cards are marked +. This is your full expedition deck, not your current hand.</p><div class="card-gallery">${state.deck.map(c => cardMarkup(c)).join('')}</div>`);
     }
     function helpDialog() {
-        showDialog('Expedition guide', `<p>Play as Mochi, the little slime from the homepage. Choose Vibration (multi-hit), Thermal (heat and defense), or Multimodal (draw and vulnerability). Mix families through card rewards.</p><ol class="help-list"><li><strong>Routes:</strong> Choose a highlighted connected node. Travel upward; completed rooms cannot be revisited.</li><li><strong>Combat:</strong> Each turn starts with 3 Energy and 5 cards. Attack enemies and gain Block against their next action. Their intent is always visible.</li><li><strong>End turn:</strong> Discard your remaining hand. The enemy acts, your Block resets, and a new turn begins. When your draw pile is empty, shuffle the discard pile.</li><li><strong>Vulnerable / Weak:</strong> Vulnerable increases incoming attack damage by 50%. Weak reduces outgoing attack damage by 25%. Each stack lasts one enemy action.</li><li><strong>Heat / Amplify:</strong> Heat deals damage before the enemy acts, ignores Block, then decreases by 1. Amplify adds damage to each hit.</li><li><strong>Rewards:</strong> Win Gold and choose 1 of 3 cards, or skip to keep your deck focused. Elites also guarantee a relic.</li><li><strong>Rest / Events:</strong> Heal or permanently upgrade a card. Spend Gold to heal at an event, or trade HP to remove a card.</li><li><strong>Final encounter:</strong> HP, deck, and relics persist between battles. Defeat the boss at the seventh node to win. At 0 HP, the run ends.</li></ol><p class="muted">Fictional game rules inspired by haptics research, not a simulation of real perceptual effects. No sound or device vibration. Progress is saved in this browser when storage is available.</p>`);
+        showDialog('Expedition guide', `<p>Play as Mochi, the little slime from the homepage. Choose Vibration (multi-hit), Thermal (heat and defense), Multimodal (draw and vulnerability), or HapticGeneration (sampling and refinement). Mix families through card rewards.</p><ol class="help-list"><li><strong>Routes:</strong> Choose a highlighted connected node. Travel upward; completed rooms cannot be revisited.</li><li><strong>Combat:</strong> Each turn starts with 3 Energy and 5 cards. Attack enemies and gain Block against their next action. Their intent is always visible.</li><li><strong>End turn:</strong> Discard your remaining hand. The enemy acts, your Block resets, and a new turn begins. When your draw pile is empty, shuffle the discard pile.</li><li><strong>Vulnerable / Weak:</strong> Vulnerable increases incoming attack damage by 50%. Weak reduces outgoing attack damage by 25%. Each stack lasts one enemy action.</li><li><strong>Heat / Amplify:</strong> Heat deals damage before the enemy acts, ignores Block, then decreases by 1. Amplify adds damage to each hit.</li><li><strong>Morale:</strong> Attack cards deal 25% more damage for the listed number of turns. Morale refreshes to the longer duration when reapplied; counterattacks and Heat are unchanged.</li><li><strong>Evasion:</strong> Avoid one incoming hit, then consume Evasion. It persists through non-attacking turns and does not stack. Thermal Masking also counters; enemy Block reduces counter damage, while Amplify and Vulnerable do not modify it. A lethal counter cancels the remaining enemy hits.</li><li><strong>Combo cards:</strong> Guided Toolpath gains bonus damage when your previous card this turn belonged to another family, including Neutral. Conductive Release consumes all enemy Heat for armor-bypassing damage; it does not gain Amplify, Morale, or Vulnerable bonuses.</li><li><strong>Research cards:</strong> Use the Research cards button for source concepts, game adaptations, and upgrade effects.</li><li><strong>Rewards:</strong> Win Gold and choose 1 of 3 cards, or skip to keep your deck focused. Elites also guarantee a relic.</li><li><strong>Rest / Events:</strong> Heal or permanently upgrade a card. Spend Gold to heal at an event, or trade HP to remove a card.</li><li><strong>Final encounter:</strong> HP, deck, and relics persist between battles. Defeat the boss at the seventh node to win. At 0 HP, the run ends.</li></ol><p class="muted">Relics represent haptic devices; their bonuses are fictional game rules. Fictional game rules inspired by haptics research, not a simulation of real perceptual effects. No sound or device vibration. Progress is saved in this browser when storage is available.</p>`);
+    }
+    function deviceIcon(type) {
+        const paths = {
+            'force-arm':'M5 27 H23 V23 H5 Z M14 23 V17 L23 11 L18 5 L12 8 M23 11 L28 8',
+            'parallel-arm':'M5 26 H27 L24 21 H8 Z M8 21 L5 9 L16 5 L27 9 L24 21 M5 9 L16 17 L27 9 M16 17 V24',
+            tactor:'M6 9 H26 V25 H6 Z M10 9 V5 H22 V9 M11 14 H21 M11 19 H21 M2 12 V22 M30 12 V22',
+            thermode:'M5 10 H27 V24 H5 Z M5 14 H27 M10 18 V24 M16 18 V24 M22 18 V24 M10 6 V3 M16 6 V3 M22 6 V3',
+            array:'M5 5 H27 V27 H5 Z M10 10 H12 V12 H10 Z M20 10 H22 V12 H20 Z M10 20 H12 V22 H10 Z M20 20 H22 V22 H20 Z',
+            glove:'M10 28 L5 19 V15 L10 18 V7 H14 V15 H16 V4 H20 V15 H22 V7 H26 V22 L22 28 Z'
+        };
+        return `<svg class="device-icon" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">${`<path d="${paths[type] || paths.tactor}"/>`}</svg>`;
     }
     function relicList() {
-        return state.relics.map(id => `<span class="relic" title="${escape(E.RELICS[id].text)}">✦ ${escape(E.RELICS[id].name)}<small>${escape(E.RELICS[id].text)}</small></span>`).join('');
+        return state.relics.map(id => `<span class="relic" title="${escape(E.RELICS[id].text)}">${deviceIcon(E.RELICS[id].device)} ${escape(E.RELICS[id].name)}<small>${escape(E.RELICS[id].text)}</small></span>`).join('');
     }
     function header() {
         return `<section class="run-header"><div><span class="eyebrow">HAPTIC LAB · ${escape(E.ARCHETYPES[state.archetype].name)} deck</span><h1>${state.phase === 'battle' ? labels[state.node.type] : 'Forest Expedition'}</h1></div><div class="run-resources"><span class="health">HP <strong>${state.hp} / ${state.maxHp}</strong></span><span>Run Gold <strong>${state.gold}</strong></span><span>Lab Gold <strong data-wallet-balance>${MochiWallet.read().gold}</strong></span><button data-action="deck">Deck ${state.deck.length}</button><button data-action="restart">New run</button></div></section><div class="relic-strip" aria-label="Your relics">${relicList()}</div>`;
@@ -75,12 +95,22 @@
         const body = actor.querySelector('.fluffy-body');
         const frames = {
             attack: [{transform:'scale(1)'},{transform:'translateX(-8px) scale(1.12,.88)',offset:.2},{transform:'translateX(30px) scale(.94,1.08)',offset:.55},{transform:'scale(1)'}],
+            evade: [{transform:'translateX(0)'},{transform:'translateX(-20px) skewX(-8deg)',opacity:.4},{transform:'translateX(0)',opacity:1}],
             hit: [{transform:'translateX(0)'},{transform:'translateX(-9px) scale(.94,1.04)'},{transform:'translateX(5px)'},{transform:'translateX(-3px)'},{transform:'translateX(0)'}],
             block: [{transform:'scale(1)'},{transform:'scale(1.12,.88)'},{transform:'scale(1)'}],
             heal: [{transform:'translateY(0)'},{transform:'translateY(-12px) scale(.97,1.04)'},{transform:'translateY(0)'}]
         };
         const animation = body.animate(frames[cue] || frames.heal, {duration:cue === 'attack' ? 420 : 500,easing:'ease-out'});
         animation.onfinish = () => { if (actor.isConnected) actor.dataset.mood = 'idle'; };
+    }
+    function researchEffect(family) {
+        const arena = app.querySelector('.arena');
+        if (!arena) return;
+        const pulse = document.createElement('span');
+        pulse.className = `research-pulse pulse-${family}`;
+        pulse.setAttribute('aria-hidden', 'true');
+        arena.append(pulse);
+        setTimeout(() => pulse.remove(), 700);
     }
     function combatEffects(effects) {
         const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -95,7 +125,7 @@
             const number = document.createElement('span');
             number.className = `combat-number fx-${effect.kind}`;
             number.setAttribute('aria-hidden', 'true');
-            const labels = { damage: `−${effect.amount} HP`, heal: `+${effect.amount} HP`, block: `+${effect.amount} Block`, absorb: `${effect.amount} Blocked`, heat: `+${effect.amount} Heat` };
+            const labels = { damage: `−${effect.amount} HP`, heal: `+${effect.amount} HP`, block: `+${effect.amount} Block`, absorb: `${effect.amount} Blocked`, heat: `+${effect.amount} Heat`, morale: `Morale ${effect.amount} turns`, evasion: 'Evasion ready', evade: `Evaded ${effect.amount}` };
             number.textContent = labels[effect.kind];
             number.style.setProperty('--fx-delay', `${delay}ms`);
             number.style.setProperty('--fx-row', row % 3);
@@ -104,7 +134,7 @@
                 if (!actor.isConnected) return;
                 if (effect.kind === 'damage') {
                     const flash = document.createElement('span');
-                    flash.className = `combat-impact${effect.source === 'heat' ? ' heat-impact' : ''}`;
+                    flash.className = `combat-impact${['heat','thermal'].includes(effect.source) ? ' heat-impact' : effect.source === 'counter' ? ' counter-impact' : ''}`;
                     flash.setAttribute('aria-hidden', 'true');
                     actor.append(flash);
                     setTimeout(() => flash.remove(), 450);
@@ -119,11 +149,28 @@
         }
         return duration;
     }
+    function bossReview(enemy, turn) {
+        if (enemy.id !== 'boss') return '';
+        const quotes = enemy.awakened ? [
+            'The claims are stronger now. Where is the stronger evidence?',
+            'Please add another baseline. The previous baseline is also attacking.',
+            'The sample size is small. I will double the number of attacks.',
+            'I appreciate the revisions. Unfortunately, I have four more concerns.'
+        ] : [
+            'What exactly is novel about your approach?',
+            'The baseline needs strengthening. I have prepared a shield.',
+            'Can you replicate this result? Twice, please.',
+            'Your conclusion seems stronger than the evidence.'
+        ];
+        return `<aside class="spire-review" aria-label="Fictional reviewer comment"><span>Reviewer 2 · ${enemy.awakened ? 'Second round' : 'First round'}</span><p>${escape(quotes[(turn-1)%quotes.length])}</p></aside>`;
+    }
     function battleMarkup() {
         const b = state.battle, e = b.enemy, enemy = E.ENEMIES[e.id], move = E.intent(state);
+        const morale = b.morale ? `Morale +25% · ${b.morale} turns` : '';
+        const evasion = b.evade ? `Evasion ready${b.counter ? ` · Counter ${b.counter}` : ''}` : '';
         const intent = [move.damage ? `Attack ${move.damage}${move.hits > 1 ? ` × ${move.hits}` : ''}` : '', move.block ? `Block +${move.block}` : '', move.strength ? `Amplify +${move.strength}` : ''].filter(Boolean).join(' · ');
         const statuses = [[e.burn,'Heat'],[e.weak,'Weak'],[e.vulnerable,'Vulnerable'],[e.strength,'Amplify'],[e.block,'Block']].filter(([v]) => v > 0);
-        return `<section class="battle-panel"><div class="battle-meta"><span class="eyebrow">Floor ${state.node.floor + 1} · Turn ${b.turn}</span><button data-action="route">View route</button></div><div class="arena"><div class="player-station"><span class="eyebrow">YOUR RESEARCH COMPANION</span><h2>Mochi</h2>${mochiHero()}<p>Block <strong>${b.block}</strong> · Amplify <strong>${b.strength}</strong>${b.armor ? ` · Block each turn +${b.armor}` : ''}</p><p class="muted">Your little research companion.<br>Manage cards and Energy to keep Mochi safe.</p></div><div class="enemy-station"><div class="intent" role="status" aria-label="Enemy intent">Next intent <strong>${escape(intent)}</strong></div>${monster(enemy)}<h2>${escape(enemy.name)}${e.awakened ? ' · Awakened' : ''}</h2><div class="hp-track" role="meter" aria-label="Enemy HP" aria-valuenow="${e.hp}" aria-valuemin="0" aria-valuemax="${e.maxHp}"><span style="width:${Math.max(0, e.hp / e.maxHp * 100)}%"></span><b>${e.hp} / ${e.maxHp}</b></div><div class="enemy-statuses">${statuses.map(([v,label]) => `<span>${label} ${v}</span>`).join('')}</div><p class="muted">${escape(enemy.description)}</p></div></div><div class="turn-bar"><span class="energy">Energy <strong>${b.energy}</strong> / 3</span><span class="player-defense">Block <strong>${b.block}</strong> · Amplify <strong>${b.strength}</strong></span><span class="pile-counts">Draw ${b.draw.length} · Discard ${b.discard.length} · Exhaust ${b.exhaust.length}</span><button class="primary" data-action="end">End turn →</button></div><div class="hand" aria-label="Hand">${b.hand.length ? b.hand.map((c,i) => cardMarkup(c,'play',i,E.card(c.id,c.upgraded).cost > b.energy)).join('') : '<p>Your hand is empty. End your turn to draw new cards.</p>'}</div><p class="muted small">Played cards go to the discard pile. Exhausted cards cannot be drawn again this battle.</p></section><details class="battle-log" open><summary>Expedition log</summary><ol>${state.log.slice(-4).map(t => `<li>${escape(t)}</li>`).join('')}</ol></details>`;
+        return `<section class="battle-panel"><div class="battle-meta"><span class="eyebrow">Floor ${state.node.floor + 1} · Turn ${b.turn}</span><button data-action="route">View route</button></div>${bossReview(e,b.turn)}<div class="arena"><div class="player-station"><span class="eyebrow">YOUR RESEARCH COMPANION</span><h2>Mochi</h2>${mochiHero()}<p>Block <strong>${b.block}</strong> · Amplify <strong>${b.strength}</strong>${b.armor ? ` · Block each turn +${b.armor}` : ''}</p><p class="muted">Your little research companion.<br>Manage cards and Energy to keep Mochi safe.</p></div><div class="enemy-station"><div class="intent" role="status" aria-label="Enemy intent">Next intent <strong>${escape(intent)}</strong></div>${monster(enemy)}<h2>${escape(enemy.name)}${e.awakened ? ' · Awakened' : ''}</h2><div class="hp-track" role="meter" aria-label="Enemy HP" aria-valuenow="${e.hp}" aria-valuemin="0" aria-valuemax="${e.maxHp}"><span style="width:${Math.max(0, e.hp / e.maxHp * 100)}%"></span><b>${e.hp} / ${e.maxHp}</b></div><div class="enemy-statuses">${statuses.map(([v,label]) => `<span>${label} ${v}</span>`).join('')}</div><p class="muted">${escape(enemy.description)}</p></div></div><div class="turn-bar"><span class="energy">Energy <strong>${b.energy}</strong> / 3</span><span class="player-defense">Block <strong>${b.block}</strong> · Amplify <strong>${b.strength}</strong>${evasion ? `<span class="evasion-status">${evasion}</span>` : ''}${morale ? `<span class="morale-status">${morale}</span>` : ''}</span><span class="pile-counts">Draw ${b.draw.length} · Discard ${b.discard.length} · Exhaust ${b.exhaust.length}</span><button class="primary" data-action="end">End turn →</button></div><div class="hand" aria-label="Hand">${b.hand.length ? b.hand.map((c,i) => cardMarkup(c,'play',i,E.card(c.id,c.upgraded).cost > b.energy)).join('') : '<p>Your hand is empty. End your turn to draw new cards.</p>'}</div><p class="muted small">Played cards go to the discard pile. Exhausted cards cannot be drawn again this battle.</p></section><details class="battle-log" open><summary>Expedition log</summary><ol>${state.log.slice(-4).map(t => `<li>${escape(t)}</li>`).join('')}</ol></details>`;
     }
     function rewardMarkup() {
         const r = state.reward;
@@ -145,7 +192,7 @@
     }
     function render(focus = false) {
         if (!state) {
-            app.innerHTML = `<section class="lobby"><span class="eyebrow">A HAPTIC DECKBUILDING ROGUELIKE</span><h1>Sensory Spire</h1><p class="lobby-copy">Collect signals. Combine sensations.<br>Build a deck and explore the forest with Mochi.</p><div class="lobby-tags"><span>18 cards</span><span>Branching routes</span><span>Elites & Final Boss</span><span>Earn Lab Gold for Mochi’s home</span></div><div class="archetype-grid" role="group" aria-label="Choose a starter deck">${Object.entries(E.ARCHETYPES).map(([id,a]) => `<button class="archetype ${id} ${id === selectedArchetype ? 'selected' : ''}" data-action="archetype" data-id="${id}" aria-pressed="${id === selectedArchetype}"><span class="archetype-symbol" aria-hidden="true">${{vibration:'⌁',thermal:'♨',multimodal:'◈'}[id]}</span><strong>${a.name}</strong><b>${a.subtitle}</b><span>${a.description}</span><small>${a.cards.length}-card starter · At least one matching card in each reward</small></button>`).join('')}</div><div class="lobby-actions">${saved && !['victory','defeat'].includes(saved.phase) ? '<button class="primary" data-action="continue">Continue expedition</button>' : ''}<button class="${saved ? 'secondary' : 'primary'}" data-action="${saved ? 'restart' : 'new'}">Start with ${E.ARCHETYPES[selectedArchetype].name}</button><button data-action="help">How to play</button></div><p class="muted">10–20 minutes · No sound · Browser autosave</p><p class="small muted">Combine attacks, shields, Heat, and Amplify.<br>Inspired by research concepts; not a simulation of real haptic effects.</p></section>`;
+            app.innerHTML = `<section class="lobby"><span class="eyebrow">A HAPTIC DECKBUILDING ROGUELIKE</span><h1>Sensory Spire</h1><p class="lobby-copy">Collect signals. Combine sensations.<br>Build a deck and explore the forest with Mochi.</p><div class="lobby-tags"><span>40 basic · 40 special · 4 neutral cards</span><span>Branching routes</span><span>Elites & Final Boss</span><span>Earn Lab Gold for Mochi’s home</span></div><div class="archetype-grid" role="group" aria-label="Choose a starter deck">${Object.entries(E.ARCHETYPES).map(([id,a]) => `<button class="archetype ${id} ${id === selectedArchetype ? 'selected' : ''}" data-action="archetype" data-id="${id}" aria-pressed="${id === selectedArchetype}"><span class="archetype-symbol" aria-hidden="true">${{vibration:'⌁',thermal:'♨',multimodal:'◈',generation:'✧'}[id]}</span><strong>${a.name}</strong><b>${a.subtitle}</b><span>${a.description}</span><small>${a.cards.length} distinct basic cards · Matching-family rewards</small></button>`).join('')}</div><div class="lobby-actions">${saved && !['victory','defeat'].includes(saved.phase) ? '<button class="primary" data-action="continue">Continue expedition</button>' : ''}<button class="${saved ? 'secondary' : 'primary'}" data-action="${saved ? 'restart' : 'new'}">Start with ${E.ARCHETYPES[selectedArchetype].name}</button><button data-action="help">How to play</button></div><p class="muted">10–20 minutes · No sound · Browser autosave</p><p class="small muted">Combine attacks, shields, Heat, and Amplify.<br>Inspired by research concepts; not a simulation of real haptic effects.</p></section>`;
             return;
         }
         let body = state.phase === 'map' ? mapMarkup() : state.phase === 'battle' ? battleMarkup() : state.phase === 'reward' ? rewardMarkup() : ['victory','defeat'].includes(state.phase) ? finalMarkup() : chooseMarkup();
@@ -160,6 +207,8 @@
         if (action === 'archetype' && !state && E.ARCHETYPES[button.dataset.id]) { selectedArchetype = button.dataset.id; render(); app.querySelector(`[data-action="archetype"][data-id="${selectedArchetype}"]`)?.focus({preventScroll:true}); return; }
         if (action === 'choose-new') { if (dialog.open) dialog.close(); saved = state || saved; selectedArchetype = state?.archetype || selectedArchetype; state = null; choosing = null; render(); app.scrollIntoView({behavior:'instant'}); return; }
         if (action === 'help') { helpDialog(); return; }
+        if (action === 'research') { researchFamily = state?.archetype || selectedArchetype; researchDialog(); return; }
+        if (action === 'research-family' && [...Object.keys(E.ARCHETYPES),'neutral'].includes(button.dataset.family)) { researchFamily=button.dataset.family; researchDialog(); dialog.querySelector(`[data-family="${researchFamily}"][data-action="research-family"]`)?.focus(); return; }
         if (action === 'restart') { showDialog('Start a new expedition?', state ? '<p>Return to deck selection. Your existing run stays saved until you start a new one.</p><button class="danger" data-action="choose-new">Choose a starter deck</button>' : `<p>Replace your saved run with a new ${escape(E.ARCHETYPES[selectedArchetype].name)} expedition.</p><button class="danger" data-action="new">Start with this deck</button>`); return; }
         if (action === 'deck' && state) { deckDialog(); return; }
         if (action === 'route' && state) { showDialog('Expedition route', `<p>Room ${state.path.length} / 7 · Finish this battle to choose your next route.</p>${mapMarkup()}`); return; }
@@ -193,15 +242,19 @@
             // Keep the last hit visible before replacing combat with rewards or defeat.
             if (before === 'battle' && state.phase !== 'battle' && effects.length) {
                 const duration = combatEffects(effects);
+                if (played?.research) researchEffect(played.family);
                 app.setAttribute('aria-busy', 'true');
                 app.querySelectorAll('button').forEach(button => button.disabled = true);
                 await new Promise(resolve => setTimeout(resolve, duration));
                 app.removeAttribute('aria-busy');
             }
             render(before !== state.phase || !!choosing || action === 'cancel');
-            if (state.phase === 'battle') combatEffects(effects);
             if (state.phase === 'battle') {
-                const cue = action === 'end' ? (state.hp < oldHp ? 'hit' : 'block') : played ? (played.damage ? 'attack' : played.heal ? 'heal' : 'block') : 'idle';
+                combatEffects(effects);
+                if (played?.research) researchEffect(played.family);
+            }
+            if (state.phase === 'battle') {
+                const cue = action === 'end' ? (state.hp < oldHp ? 'hit' : effects.some(e => e.kind === 'evade') ? 'evade' : 'block') : played ? (played.damage || played.heatBurst ? 'attack' : played.heal ? 'heal' : played.evade ? 'evade' : 'block') : 'idle';
                 if (cue !== 'idle') animateBattle(cue);
             }
             announce(state.phase === 'battle' ? `${effects.map(e => `${e.target === 'player' ? 'Mochi' : 'Enemy'}: ${e.amount} ${e.kind}`).join('. ')}. ${state.log.at(-1)} Energy ${state.battle.energy}, Enemy HP ${state.battle.enemy.hp}.` : state.phase === 'map' ? 'Choose your next route.' : state.phase === 'reward' ? 'Victory! Choose your reward card.' : 'View updated.');

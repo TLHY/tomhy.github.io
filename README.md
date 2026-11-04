@@ -74,13 +74,16 @@ The homepage uses `assets/css/readability.css` for its reading layout and pixel-
 
 ## Research Game — Sensory Spire
 
-Open `haptic-lab.html`, use the homepage sidebar, or click Mochi and choose **Research Game**. The English deck-building roguelike includes seven branching floors, normal/elite encounters, camps, treasure, events, and a final boss. Choose a Vibration (multi-hit/Amplify), Thermal (Heat/defense), or Multimodal (draw/Vulnerable) starter deck. Card rewards guarantee at least one matching card while allowing mixed decks.
+Open `haptic-lab.html`, or click Mochi and choose **Research Game**. The English deck-building roguelike includes seven branching floors, normal/elite encounters, camps, treasure, events, and a final boss. Choose a Vibration (multi-hit/Amplify), Thermal (Heat/defense), Multimodal (draw/Vulnerable), or HapticGeneration (sampling/refinement) starter deck. Each starts with ten distinct field-specific basic cards. Morale adds 25% direct attack damage for its duration; Evasion can avoid one incoming hit and Thermal Masking can counterattack. Card rewards guarantee at least one matching card while allowing mixed decks.
 
 HP, cards, upgrades, and relics persist between encounters. Runs save in browser storage when available. On mobile, swipe the hand horizontally. Mochi shares artwork with the homepage companion and has idle, attack, block, hit, healing, and victory animations. Game rules are inspired by haptics research, not a simulation of real perceptual responses. No audio or device vibration is used.
 
 - `assets/js/haptic-run-engine.js`: deterministic rules, cards, encounters, routes, and save validation.
+- `assets/js/haptic-paper-cards.js`: field/Neutral special cards, source summaries, and explicit evidence labels.
 - `assets/js/haptic-run.js` and `assets/css/haptic-run.css`: game interface and monster artwork.
 - `assets/js/mochi-art.js`: artwork shared by the companion and research-game hero.
+
+Relics now represent haptic devices, with fictional game bonuses. **Research cards** opens the concept references, upgrades, and four basic-card catalogs. Each field now has ten special cards based on the supplied paper summaries, plus four Neutral cards based on existing profile publications. Linked abstracts and the full HCI Tech Lab publication list still require verification; the library labels the evidence basis. See [research-card design and evidence requirements](docs/research-card-design.md).
 
 ## Writing Game — Draft After Dark
 
@@ -93,6 +96,8 @@ Open `writing-game.html`, use the sidebar, or click Mochi and choose **Writing G
 - The final Inner Editor confines movement to a correction box. Its script opens with Orbital Erasers, then alternates moving margins, warned deletion beams, gravity underlines, and blue/orange walls. Orbiting eraser cannons warn with dashed rays, then rotate crossing laser pairs around the correction box; subsequent volleys reverse direction. Normal attacks use two crossing axes, and enraged attacks use three. In gravity mode, Up/W/Space or the JUMP button jumps; holding jumps higher. Below half HP, barriers accelerate from 240 to 315 pixels/second and the pattern cycle shortens from 26 to 20.8 seconds. Margins mix staggered trains, falling shutters, and wall/beam combinations. Deletion attacks vary between crossed beams, sequential columns, and a safe-column squeeze. Gravity requires high jumps over tall bars and short taps beneath low ceilings. Colored walls lead into delayed white gates, and the next cycle changes the opening stage order.
 - P/Esc pauses. Switching tabs/windows automatically pauses and requires explicit resume. Level-up choices also stop game time.
 - Best ink-cleared and level results save locally when storage is available. Runs themselves do not survive a reload. No sound or vibration is used.
+
+The boss has a reviewer-comment panel with 20 pattern-specific criticisms/questions. Pens and white ink carry letters, figure references, missing citations, TODOs, and other paper-writing jokes; the colored collision cores and blue/orange movement rules stay unchanged. Sensory Spire’s final boss also has intent-specific reviewer comments.
 
 Rules and rendering are separated into `assets/js/writing-game-engine.js` and `assets/js/writing-game.js`.
 

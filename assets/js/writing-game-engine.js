@@ -14,6 +14,50 @@
         draft: { name:'Second Draft', text:'+1 maximum HP and heal 3 HP.', max:3 },
         coffee: { name:'Coffee Break', text:'Heal 3 HP.', max:Infinity }
     };
+    const REVIEWER_LINES = {
+        orbit: [
+            'Your contribution appears to be going in circles.',
+            'Where is the ablation study? Please remove everything, one part at a time.',
+            'Please cite the twelve related papers surrounding your method.',
+            'The reasoning is circular. So are these lasers.'
+        ],
+        margins: [
+            'The margins do not follow the template.',
+            'Could you fit three more experiments into the same page limit?',
+            'Figure 2 has escaped its column. Please bring it back.',
+            'The paper is two pages over length. The contribution is two lines.'
+        ],
+        beams: [
+            'Please remove this entire section.',
+            'Where is the baseline? It should be exactly where you are standing.',
+            'This paragraph could be one sentence. Preferably zero.',
+            'Can you justify every single line? I brought a deletion tool.'
+        ],
+        gravity: [
+            'The claims are too high. Please ground them in evidence.',
+            'Can your method clear a higher bar?',
+            'The evaluation has a surprisingly low ceiling.',
+            'Please add a stronger baseline. Then jump over it.'
+        ],
+        colors: [
+            'Please clarify whether the method should stop or proceed.',
+            'The revision contradicts the previous revision.',
+            'Accept with minor major revisions. Please do not move. Now move.',
+            'Why did the method change between Figures 2 and 3?'
+        ]
+    };
+    function reviewLine(s) {
+        if(s.phase !== 'boss' || !s.bossPattern || !s.boss) return null;
+        const pattern=s.bossPattern.id,lines=REVIEWER_LINES[pattern];
+        if(!lines)return null;
+        const index=((s.boss.stageVolley||0)+(s.bossPattern.cycle||0)*2+(s.bossPattern.enraged?1:0))%lines.length;
+        return { speaker:`Reviewer ${pattern==='orbit'||pattern==='colors'?2:pattern==='gravity'?3:1}`, text:lines[index], pattern };
+    }
+    function paperGlyph(index) {
+        const labels=['a','b','c','Fig.2','[?]','x','y','TODO','p<.05','et al.','404','Fig.S1'];
+        return labels[Math.abs(Math.floor(index||0))%labels.length];
+    }
+    function nextGlyph(s) { const i=s.letterSequence||0; s.letterSequence=i+1;return paperGlyph(i); }
     function random(s) { s.seed = (Math.imul(1664525,s.seed)+1013904223)>>>0; return s.seed/4294967296; }
     const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
     const distance = (a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -59,7 +103,7 @@
     }
     function addBullet(s,x,y,angle,speed,kind='white',r=5) {
         if(s.bullets.length>=200)return;
-        s.bullets.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,kind,r,life:10});
+        s.bullets.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,kind,r,life:10,glyph:nextGlyph(s)});
     }
     const BOSS_ARENA = { left:156, right:484, top:172, bottom:410 };
     function prepareBoss(s,dt) {
@@ -250,7 +294,7 @@
             if(s.fireClock<=0 && target){
                 s.fireClock=.56*Math.pow(.84,s.upgrades.flow||0);
                 const amount=1+(s.upgrades.split||0),angle=Math.atan2(target.y-s.player.y,target.x-s.player.x);
-                for(let i=0;i<amount && s.shots.length<90;i++){const a=angle+(i-(amount-1)/2)*.13;s.shots.push({x:s.player.x,y:s.player.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,r:4,damage:3+2*(s.upgrades.nib||0),life:1.9});}
+                for(let i=0;i<amount && s.shots.length<90;i++){const a=angle+(i-(amount-1)/2)*.13;s.shots.push({x:s.player.x,y:s.player.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,r:4,damage:3+2*(s.upgrades.nib||0),life:1.9,glyph:nextGlyph(s)});}
             }
             const commas=s.upgrades.footnote||0;s.orbitAngle+=dt*2.6;s.orbitClock-=dt;
             if(commas && s.orbitClock<=0){s.orbitClock=.3;for(let i=0;i<commas;i++){const angle=s.orbitAngle+i*Math.PI*2/commas,pos={x:s.player.x+Math.cos(angle)*40,y:s.player.y+Math.sin(angle)*40};for(const enemy of s.enemies)if(distance(pos,enemy)<enemy.r+10)damageEnemy(s,enemy,5);if(s.boss&&distance(pos,s.boss)<s.boss.r+10)s.boss.hp-=5;}}
@@ -282,6 +326,6 @@
             else transition(s);
         }
     }
-    const api={W,H,BOSS_ARENA,emitterAt,rotatingGeometry,DURATIONS,UPGRADES,create,step,choose,isHarmful};
+    const api={W,H,REVIEWER_LINES,reviewLine,paperGlyph,BOSS_ARENA,emitterAt,rotatingGeometry,DURATIONS,UPGRADES,create,step,choose,isHarmful};
     if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.WritingGame=api;
 })(globalThis);

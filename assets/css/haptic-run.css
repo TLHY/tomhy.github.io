@@ -194,3 +194,33 @@ dialog { width:min(900px,calc(100% - 28px)); max-height:85dvh; border:2px solid 
 @keyframes combat-float { 0% { opacity:0; transform:translate(-50%,12px) scale(.7); } 15% { opacity:1; transform:translate(-50%,-8px) scale(1.12); } 35% { opacity:1; transform:translate(-50%,-16px) scale(1); } 80% { opacity:1; } 100% { opacity:0; transform:translate(-50%,-64px) scale(1); } }
 @keyframes combat-impact { 0% { opacity:1; transform:scale(.25) rotate(-15deg); } 40% { opacity:.9; } 100% { opacity:0; transform:scale(1.4) rotate(15deg); } }
 @media(prefers-reduced-motion:reduce) { .combat-number { opacity:1; transform:translateX(-50%); } .combat-impact { animation:none; opacity:.45; } }
+
+/* Research cards and their source concepts. */
+.lab-top { flex-wrap:wrap; }
+.lab-top-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.research-card-tag { display:block; margin-top:10px; font:700 10px/1.5 system-ui,sans-serif; letter-spacing:.025em; color:#52664e; overflow-wrap:anywhere; }
+.lab-card[data-family="vibration"] .research-card-tag { color:#64511c; }
+.lab-card[data-family="thermal"] .research-card-tag { color:#914329; }
+.lab-card[data-family="multimodal"] .research-card-tag { color:#67447c; }
+.research-library { display:grid; gap:24px; }
+.research-entry { display:grid; grid-template-columns:minmax(150px,220px) minmax(0,1fr); gap:20px; padding:20px 0; border-top:1px solid var(--line); }
+.research-notes { min-width:0; font-size:15px; overflow-wrap:anywhere; }
+.research-notes h3 { font-size:18px; }
+.research-notes a { font-weight:700; text-decoration:underline; }
+.evasion-status { display:block; color:#61417d; font-weight:700; font-size:13px; }
+.fx-evasion,.fx-evade { background:#61417d; color:#fff0ff; font-size:clamp(13px,2.5vw,21px); }
+.counter-impact { background:#d2b8ff; }
+.arena { position:relative; }
+.research-pulse { position:absolute; left:52%; top:36%; width:70px; height:70px; border:5px double #ac842c; border-radius:50%; pointer-events:none; opacity:0; z-index:5; animation:research-wave 650ms ease-out both; }
+.pulse-vibration { box-shadow:0 0 0 9px #ddc67955,0 0 0 18px #ddc67933; }
+.pulse-thermal { border-color:#e58245; box-shadow:0 0 25px #f2ad58; border-radius:35% 65% 55% 45%; }
+.pulse-multimodal { border-color:#9171b4; box-shadow:0 0 0 10px #80b9c344,0 0 24px #b0a2db; }
+@keyframes research-wave { 0% { opacity:.9; transform:translate(-50%,-50%) scale(.35); } 100% { opacity:0; transform:translate(-50%,-50%) scale(2.6); } }
+@media(max-width:540px) { .research-entry { grid-template-columns:1fr; gap:16px; }.research-entry .lab-card { min-height:0; }.lab-top-actions button { padding:8px 10px; font-size:13px; } }
+@media(prefers-reduced-motion:reduce) { .research-pulse { display:none; } }
+
+.device-icon { display:inline-block; width:24px; height:24px; vertical-align:middle; flex-shrink:0; }.morale-status { display:block; color:#8a581a; font-weight:700; font-size:13px; }.fx-morale { background:#8a581a; }.archetype.generation { border-color:#729aac; }.pulse-generation { border-color:#468ca5; box-shadow:0 0 0 10px #84bfcc44; }
+
+.research-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0; }.research-tabs button { font-size:13px; }.research-tabs button[aria-pressed="true"] { background:var(--green); color:white; }.lab-card[data-family="generation"] .research-card-tag { color:#2c7185; }.lab-card[data-family="neutral"] { border-color:#a8946d; }.lab-card[data-family="neutral"] .research-card-tag { color:#79623c; }.pulse-neutral { border-color:#b59452; }
+
+.spire-review { padding:14px 22px; background:#f3e8db; border-bottom:1px solid #cfb69c; }.spire-review span { font:700 12px/1.5 ui-monospace,monospace; color:#8b5139; }.spire-review p { margin:4px 0 0; font-size:15px; }

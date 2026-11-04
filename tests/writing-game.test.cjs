@@ -37,3 +37,17 @@ test('orbital erasers open the boss encounter with warned crossing pairs',()=>{c
 test('rotating laser geometry stays fixed during warning and sweeps only after firing',()=>{const s=bossAt(0);s.patternClock=0;E.step(s);const h=s.hazards[0];const a=E.rotatingGeometry({...h,age:0}),b=E.rotatingGeometry({...h,age:h.warning-.1}),c=E.rotatingGeometry({...h,age:h.warning+.4});assert.deepEqual(a,b);assert(Math.abs(c.angle-a.angle)>.4);for(const phi of [0,.4,.8,1.2,Math.PI,Math.PI*1.7]){const p=E.emitterAt(phi),r=E.BOSS_ARENA;assert(p.x<r.left||p.x>r.right||p.y<r.top||p.y>r.bottom);}});
 test('orbit warnings do not hurt, active beams use their rotated shape, and safe sectors remain',()=>{const s=bossAt(0);s.patternClock=100;s.invulnerable=0;s.player.x=320;s.player.y=291;const h={type:'rotating-beam',x:0,y:0,w:12,h:1,phi:0,spin:1,age:0,warning:.5,life:1,vx:0,vy:0,kind:'white'};s.hazards=[h];frames(s,20);assert.equal(s.hp,100);frames(s,15);assert(s.hp<100);const safe=bossAt(0);safe.patternClock=100;safe.invulnerable=0;safe.player.x=320;safe.player.y=380;safe.hazards=[{...h,age:0,spin:0}];frames(safe,65);assert.equal(safe.hp,100);});
 test('consecutive orbital volleys reverse direction after a fresh warning',()=>{const s=bossAt(0);s.patternClock=0;E.step(s);const spin=s.hazards[0].spin;s.hazards=[];s.patternClock=0;E.step(s);assert(s.hazards.every(h=>h.spin*spin<0));assert(s.hazards.every(h=>h.age<h.warning));});
+
+test('every boss pattern has several reviewer quotes without consuming game randomness',()=>{
+ const s=E.create(15);assert.equal(E.reviewLine(s),null);s.phase='boss';s.boss={stageVolley:0};
+ for(const id of ['orbit','margins','beams','gravity','colors']){
+  s.bossPattern={id,cycle:0,enraged:false};const found=new Set(),seed=s.seed;
+  for(let n=0;n<4;n++){s.boss.stageVolley=n;const line=E.reviewLine(s);assert.equal(line.pattern,id);assert.match(line.speaker,/Reviewer/);assert(line.text.length>20);found.add(line.text);}
+  assert.equal(found.size,4);assert.equal(s.seed,seed);
+ }
+});
+test('paper projectile labels include letters, figures, missing citations and TODOs',()=>{
+ const labels=Array.from({length:24},(_,i)=>E.paperGlyph(i));assert(labels.includes('a'));assert(labels.includes('Fig.2'));assert(labels.includes('[?]'));assert(labels.includes('TODO'));
+ const s=E.create(10);s.spawnClock=100;s.enemies=[{id:1,x:500,y:220,r:11,hp:100,maxHp:100,speed:0,kind:'typo'}];
+ E.step(s);assert.equal(s.shots[0].glyph,'a');assert.equal(s.shots[0].r,4);
+});

@@ -106,7 +106,7 @@ test('a draw card cannot draw itself before resolving',()=>{
  const s=battle();hand(s,['scan']);s.battle.draw=[];s.battle.discard=[];
  E.play(s,0);assert.equal(s.battle.hand.length,0);assert.equal(s.battle.discard[0].id,'scan');
 });
-test('three starter archetypes have distinct ten-card decks and matching reward guarantees',()=>{
+test('four starter archetypes have distinct ten-card decks and matching reward guarantees',()=>{
  const decks=[];
  for(const archetype of Object.keys(E.ARCHETYPES)) {
   const s=E.create(14,archetype);decks.push(s.deck.map(c=>c.id).join(','));
@@ -116,7 +116,7 @@ test('three starter archetypes have distinct ten-card decks and matching reward 
   assert.equal(s.phase,'reward');assert(s.reward.cards.some(id=>E.CARDS[id].family===archetype));
   assert.equal(E.restore(JSON.stringify(s)).archetype,archetype);
  }
- assert.equal(new Set(decks).size,3);
+ assert.equal(new Set(decks).size,4);
 });
 test('legacy common-deck saves remain loadable without changing their cards',()=>{
  const s=E.create(9);delete s.archetype;const deck=structuredClone(s.deck);
@@ -152,4 +152,152 @@ test('lethal Heat feedback is capped and cancels the incoming attack',()=>{
  const s=battle(); s.battle.enemy.hp=2; s.battle.enemy.burn=8; const effects=[];
  E.endTurn(s,e=>effects.push(e));
  assert.deepEqual(effects,[{target:'enemy',kind:'damage',amount:2,source:'heat'}]); assert.equal(s.phase,'reward');
+});
+
+test('research starters keep ten cards, use ten distinct family basics, and preserve restored decks',()=>{
+ for (const family of Object.keys(E.ARCHETYPES)) {
+  const s=E.create(14,family); const special=s.deck.filter(c=>E.CARDS[c.id].research);
+  assert.equal(s.deck.length,10); assert.equal(special.length,0); assert.equal(new Set(s.deck.map(c=>c.id)).size,10); assert(s.deck.every(c=>E.CARDS[c.id].family===family));
+  assert(special.every(c=>E.CARDS[c.id].family===family));
+ }
+ const old=E.create(12); old.deck=Array.from({length:10},()=>({id:'pulse',upgraded:false}));
+ assert.deepEqual(E.restore(JSON.stringify(old)).deck,old.deck);
+});
+test('Tactile Brush amplifies each of its three hits',()=>{
+ const s=battle(); hand(s,['tactile_brush']); s.battle.strength=2; const hp=s.battle.enemy.hp; const fx=[];
+ E.play(s,0,e=>fx.push(e)); assert.equal(s.battle.enemy.hp,hp-15);
+ assert.deepEqual(fx.map(e=>e.amount),[5,5,5]); assert(fx.every(e=>e.source==='vibration'));
+});
+test('Phantom Funneling bypasses Block without consuming it',()=>{
+ const s=battle(); hand(s,['funneling']); s.battle.enemy.block=40; const hp=s.battle.enemy.hp;
+ E.play(s,0); assert.equal(s.battle.enemy.hp,hp-10); assert.equal(s.battle.enemy.block,40);
+});
+test('Thermal Referral strikes twice, then adds Heat that ticks before the enemy',()=>{
+ const s=battle(); hand(s,['thermal_referral']); const hp=s.battle.enemy.hp; const fx=[];
+ E.play(s,0,e=>fx.push(e)); assert.equal(s.battle.enemy.hp,hp-12); assert.equal(s.battle.enemy.burn,2);
+ assert.deepEqual(fx.filter(e=>e.kind==='damage').map(e=>e.amount),[6,6]);
+ E.endTurn(s); assert.equal(s.battle.enemy.hp,hp-14); assert.equal(s.battle.enemy.burn,1);
+});
+test('Thermal Masking evades one hit, preserves Block and counters once',()=>{
+ const s=battle(); hand(s,['thermal_masking']); s.battle.block=4; const hp=s.hp, enemy=s.battle.enemy.hp, fx=[];
+ E.play(s,0); assert.equal(s.battle.evade,1); assert.equal(s.battle.counter,8); assert.equal(s.battle.exhaust[0].id,'thermal_masking');
+ E.endTurn(s,e=>fx.push(e)); assert.equal(s.hp,hp); assert.equal(s.battle.enemy.hp,enemy-8);
+ assert.equal(s.battle.evade,0); assert.equal(s.battle.counter,0);
+ assert.equal(fx[0].kind,'evade'); assert.equal(fx[1].source,'counter');
+ E.endTurn(s); assert(s.hp<hp); assert.equal(s.battle.enemy.hp,enemy-8);
+});
+test('evasion only stops the first hit of a multi-hit enemy attack',()=>{
+ const s=battle(); hand(s,['thermal_masking']); s.battle.enemy.id='beetle'; s.battle.turn=2; s.battle.block=0;
+ E.play(s,0); const hp=s.hp; E.endTurn(s); assert.equal(s.hp,hp-7);
+});
+test('counter damage respects enemy Block but ignores Amplify and Vulnerable',()=>{
+ const s=battle(); hand(s,['thermal_masking']); s.battle.enemy.block=3; s.battle.enemy.vulnerable=2; s.battle.strength=30;
+ E.play(s,0); const hp=s.battle.enemy.hp, fx=[]; E.endTurn(s,e=>fx.push(e));
+ assert.equal(s.battle.enemy.hp,hp-5); assert(fx.some(e=>e.kind==='absorb'&&e.amount===3));
+});
+test('lethal counter cancels further hits and enemy buffs and produces a reward',()=>{
+ const s=battle(); hand(s,['thermal_masking']); s.battle.enemy.id='beetle'; s.battle.turn=2; s.battle.enemy.hp=3; s.battle.block=0;
+ E.play(s,0); const hp=s.hp,fx=[]; E.endTurn(s,e=>fx.push(e));
+ assert.equal(s.phase,'reward'); assert.equal(s.hp,hp); assert(fx.some(e=>e.source==='counter'&&e.amount===3));
+ assert.equal(fx.filter(e=>e.kind==='evade').length,1);
+});
+test('evasion persists through non-attacking turns and resets at the next battle',()=>{
+ const s=battle(); hand(s,['thermal_masking']); s.battle.enemy.id='sentinel';
+ E.play(s,0); E.endTurn(s); assert.equal(s.battle.evade,1); assert.equal(s.battle.counter,8);
+ const hp=s.hp; E.endTurn(s); assert.equal(s.hp,hp); assert.equal(s.battle.evade,0);
+ s.battle.enemy.hp=1; hand(s,['funneling']); E.play(s,0); E.reward(s); E.visit(s,'1-0');
+ assert.equal(s.battle.evade,0); assert.equal(s.battle.counter,0);
+});
+test('ThermicVib Fusion combines direct damage, Heat and defense',()=>{
+ const s=battle(); hand(s,['thermic_vib']); const hp=s.battle.enemy.hp, block=s.battle.block;
+ E.play(s,0); assert.equal(s.battle.enemy.hp,hp-7); assert.equal(s.battle.enemy.burn,3); assert.equal(s.battle.block,block+4);
+});
+test('Pseudo-Haptic Shift draws, exhausts and does not stack or weaken a prepared counter',()=>{
+ const s=battle(); hand(s,['thermal_masking','pseudo_haptic']); s.battle.hand[0].upgraded=true;
+ E.play(s,0); const count=s.battle.hand.length; E.play(s,0);
+ assert.equal(s.battle.hand.length,count); assert.equal(s.battle.evade,1); assert.equal(s.battle.counter,12); assert.equal(s.battle.exhaust.length,2);
+});
+test('evasion and counter survive saves; legacy battles default safely; invalid fields are rejected',()=>{
+ const s=battle(); hand(s,['thermal_masking']); E.play(s,0);
+ assert.deepEqual(E.restore(JSON.stringify(s)),s);
+ for (const [field,value] of [['evade',2],['evade',-1],['counter',101],['counter','8']]) {
+  const invalid=structuredClone(s); invalid.battle[field]=value; assert.equal(E.restore(JSON.stringify(invalid)),null);
+ }
+ delete s.battle.evade; delete s.battle.counter; const old=E.restore(JSON.stringify(s));
+ assert.equal(old.battle.evade,0); assert.equal(old.battle.counter,0);
+});
+test('all forty field specials and four neutral cards have sources, upgrades and can appear in rewards',()=>{
+ const ids=Object.keys(E.CARDS).filter(id=>['special','neutral'].includes(E.CARDS[id].rarity)); assert.equal(ids.length,44);
+ for(const id of ids) { const c=E.card(id); const source=E.RESEARCH[c.research]; assert(source.title&&source.concept&&c.adaptation); assert(source.link.startsWith('https://')); assert.notEqual(E.cardText(c),E.cardText(E.card(id,true))); }
+ const found=new Set();
+ for(let seed=0;seed<450;seed++) { const s=battle(seed); s.battle.enemy.hp=1; hand(s,['pulse']); E.play(s,0); s.reward.cards.forEach(id=>found.add(id)); }
+ assert(ids.every(id=>found.has(id)));
+});
+
+test('Morale boosts direct attacks for two turns, multiplies Vulnerable and leaves Heat unchanged',()=>{
+ const s=battle(); hand(s,['vibration_focus','pulse']); s.battle.enemy.hp=100; s.battle.enemy.maxHp=100; s.battle.enemy.vulnerable=2;
+ E.play(s,0); const hp=s.battle.enemy.hp; E.play(s,0); assert.equal(hp-s.battle.enemy.hp,11);
+ s.battle.enemy.burn=3; const heatHp=s.battle.enemy.hp; E.endTurn(s); assert.equal(heatHp-s.battle.enemy.hp,3); assert.equal(s.battle.morale,1);
+ hand(s,['pulse']); const nextHp=s.battle.enemy.hp; E.play(s,0); assert.equal(nextHp-s.battle.enemy.hp,11);
+ E.endTurn(s); assert.equal(s.battle.morale,0);
+});
+test('all four basic catalogs have ten distinct cards, complete upgrades and saveable states',()=>{
+ assert.equal(Object.keys(E.ARCHETYPES).length,4);
+ for(const [family,a] of Object.entries(E.ARCHETYPES)) {
+  assert.equal(a.cards.length,10); assert.equal(new Set(a.cards).size,10);
+  for(const id of a.cards) {
+   assert.equal(E.CARDS[id].family,family); assert.equal(E.CARDS[id].rarity,'basic');
+   for(const upgraded of [false,true]) {
+    const s=battle(); s.battle.enemy.hp=100; s.battle.enemy.maxHp=100;
+    hand(s,[id]); s.battle.hand[0].upgraded=upgraded;
+    assert(E.play(s,0)); assert(E.restore(JSON.stringify(s)));
+   }
+  }
+ }
+});
+test('relics are haptic devices and old relic IDs retain their gameplay bonuses',()=>{
+ assert.equal(E.RELICS.cushion.name,'Geomagic Touch'); assert.equal(E.RELICS.thermos.name,'Peltier Thermode');
+ assert(Object.values(E.RELICS).every(r=>r.device&&r.text));
+ const s=E.create(1); s.relics=['cushion','battery','lens','thermos','notebook','moss']; E.visit(s,'0-0');
+ assert.equal(s.battle.block,5); assert.equal(s.battle.energy,4); assert.equal(s.battle.strength,1); assert.equal(s.battle.enemy.burn,3); assert.equal(s.battle.hand.length,6);
+ assert(E.restore(JSON.stringify(s)));
+});
+
+test('each field has ten specials linked to ten different source papers',()=>{
+ for(const [family,a] of Object.entries(E.ARCHETYPES)) {
+  assert.equal(a.specialCards.length,10);
+  const sources=a.specialCards.map(id=>E.CARDS[id].research);
+  assert.equal(new Set(sources).size,10);
+  assert(a.specialCards.every(id=>E.CARDS[id].family===family));
+ }
+});
+test('all active specials and neutral cards resolve and restore in normal and upgraded form',()=>{
+ for(const [id,c] of Object.entries(E.CARDS).filter(([,c])=>['special','neutral'].includes(c.rarity))) for(const upgraded of [false,true]) {
+  const s=battle(); s.hp=40;s.battle.enemy.hp=200;s.battle.enemy.maxHp=200;s.battle.enemy.burn=5;
+  hand(s,[id]);s.battle.hand[0].upgraded=upgraded;
+  assert(E.play(s,0),id); assert(E.restore(JSON.stringify(s)),id);
+  E.endTurn(s); assert(s.hp>=0&&s.hp<=s.maxHp,id);
+ }
+});
+test('Conductive Release consumes Heat, bypasses Block, and does not gain direct attack multipliers',()=>{
+ const s=battle();hand(s,['thermal_conduct']);s.battle.enemy.burn=5;s.battle.enemy.block=50;s.battle.enemy.vulnerable=3;s.battle.strength=20;s.battle.morale=3;
+ const hp=s.battle.enemy.hp;E.play(s,0);assert.equal(hp-s.battle.enemy.hp,10);assert.equal(s.battle.enemy.burn,0);assert.equal(s.battle.enemy.block,50);
+ const empty=battle();hand(empty,['thermal_conduct']);const before=empty.battle.enemy.hp;E.play(empty,0);assert.equal(empty.battle.enemy.hp,before);
+});
+test('cross-family bonus includes Neutral, does not trigger on the same family, and resets each turn',()=>{
+ for(const [previous,bonus] of [['vibration',4],['neutral',4],['multimodal',0],[null,0]]) {
+  const s=battle();hand(s,['multi_guidance']);s.battle.enemy.hp=100;s.battle.enemy.maxHp=100;s.battle.lastFamily=previous;
+  E.play(s,0);assert.equal(s.battle.enemy.hp,100-7-bonus);assert.equal(s.battle.lastFamily,'multimodal');
+  E.endTurn(s);assert.equal(s.battle.lastFamily,null);
+ }
+});
+test('neutral cards are earnable in every archetype; basic and legacy cards are excluded from rewards',()=>{
+ const found=new Set();
+ for(let seed=0;seed<180;seed++)for(const family of Object.keys(E.ARCHETYPES)){
+  const s=E.create(seed,family);E.visit(s,'0-0');s.battle.enemy.hp=1;hand(s,['pulse']);E.play(s,0);
+  assert.equal(s.reward.cards.length,3);assert.equal(new Set(s.reward.cards).size,3);
+  assert(s.reward.cards.some(id=>E.CARDS[id].family===family));
+  for(const id of s.reward.cards){assert(['special','neutral'].includes(E.CARDS[id].rarity));if(E.CARDS[id].family==='neutral')found.add(id);}
+ }
+ assert.equal(found.size,4);
 });
