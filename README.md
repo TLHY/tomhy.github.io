@@ -86,11 +86,11 @@ HP, cards, upgrades, and relics persist between encounters. Runs save in browser
 
 Open `writing-game.html`, use the sidebar, or click Mochi and choose **Writing Game**. This separate survivor / bullet-hell game has three 35-second survival chapters alternating with 14-second proofreading patterns, followed by a final boss with a 50-second deadline.
 
-- WASD/arrows or the mobile stick moves the player; the pen auto-targets enemies.
+- WASD/arrows or the mobile stick moves the player; the pen auto-targets enemies. Player movement and roaming-monster pursuit run at 3× their original speed (base player speed: 348 pixels/second). Bullet, barrier, and jump physics retain their separate speeds.
 - Collect ink to level up and choose pen damage/rate, extra shots, orbiting commas, revision waves, movement, pickup radius, or healing upgrades.
 - Space / DASH gives a brief invulnerable burst with a three-second cooldown.
 - White bullets always hurt; blue hurts while moving; orange hurts while stationary. B/O markers accompany their colors.
-- The final Inner Editor confines movement to a correction box. Its script alternates moving margins, warned deletion beams, gravity underlines, and blue/orange walls. In gravity mode, Up/W/Space or the JUMP button jumps; holding jumps higher. Below half HP, barriers accelerate from 225 to 300 pixels/second and the pattern cycle shortens from 20 to 16 seconds.
+- The final Inner Editor confines movement to a correction box. Its script opens with Orbital Erasers, then alternates moving margins, warned deletion beams, gravity underlines, and blue/orange walls. Orbiting eraser cannons warn with dashed rays, then rotate crossing laser pairs around the correction box; subsequent volleys reverse direction. Normal attacks use two crossing axes, and enraged attacks use three. In gravity mode, Up/W/Space or the JUMP button jumps; holding jumps higher. Below half HP, barriers accelerate from 240 to 315 pixels/second and the pattern cycle shortens from 26 to 20.8 seconds. Margins mix staggered trains, falling shutters, and wall/beam combinations. Deletion attacks vary between crossed beams, sequential columns, and a safe-column squeeze. Gravity requires high jumps over tall bars and short taps beneath low ceilings. Colored walls lead into delayed white gates, and the next cycle changes the opening stage order.
 - P/Esc pauses. Switching tabs/windows automatically pauses and requires explicit resume. Level-up choices also stop game time.
 - Best ink-cleared and level results save locally when storage is available. Runs themselves do not survive a reload. No sound or vibration is used.
 

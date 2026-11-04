@@ -1,6 +1,7 @@
 /* Fixed-step, seeded rules for a writing-themed survivor / bullet-hell game. */
 (function(root) {
     const W = 640, H = 440;
+    const MOVEMENT_SCALE = 3;
     const DURATIONS = { survival: 35, proofread: 14, boss: 50 };
     const UPGRADES = {
         nib: { name:'Sharper Nib', text:'+2 pen damage.', max:5 },
@@ -54,7 +55,7 @@
         const edge=Math.floor(random(s)*4), t=random(s);
         const kind=s.chapter>=2 && random(s)<.22?'critic':random(s)<.3?'doubt':'typo';
         const hp=kind==='critic'?15+s.chapter*3:kind==='doubt'?3+s.chapter:4+s.chapter;
-        s.enemies.push({id:s.nextId++,kind,x:edge===0?-18:edge===1?W+18:t*W,y:edge===2?-18:edge===3?H+18:t*H,r:kind==='critic'?15:kind==='doubt'?8:11,hp,maxHp:hp,speed:kind==='critic'?21:kind==='doubt'?45+s.chapter*4:28+s.chapter*4,dead:false});
+        s.enemies.push({id:s.nextId++,kind,x:edge===0?-18:edge===1?W+18:t*W,y:edge===2?-18:edge===3?H+18:t*H,r:kind==='critic'?15:kind==='doubt'?8:11,hp,maxHp:hp,speed:MOVEMENT_SCALE*(kind==='critic'?21:kind==='doubt'?45+s.chapter*4:28+s.chapter*4),dead:false});
     }
     function addBullet(s,x,y,angle,speed,kind='white',r=5) {
         if(s.bullets.length>=200)return;
@@ -63,17 +64,18 @@
     const BOSS_ARENA = { left:156, right:484, top:172, bottom:410 };
     function prepareBoss(s,dt) {
         const enraged=s.boss.hp<s.boss.maxHp/2;
-        const t=(s.phaseTime*(enraged?1.25:1))%20;
-        const id=t<5?'margins':t<10?'beams':t<16?'gravity':'colors';
+        const clock=s.phaseTime*(enraged?1.25:1),cycle=Math.floor(clock/26),t=clock%26;
+        const slot=t<6?0:t<11?1:t<16?2:t<22?3:4;
+        const id=(cycle%2===0?['orbit','margins','beams','gravity','colors']:['orbit','beams','margins','gravity','colors'])[slot];
         const control=id==='gravity'?'gravity':'free';
-        const names={margins:'MARGIN SHIFT',beams:'DELETE BEAMS',gravity:'GRAVITY UNDERLINES',colors:'STOP / GO'};
+        const names={margins:'MARGIN SHIFT',beams:'DELETE BEAMS',gravity:'GRAVITY UNDERLINES',colors:'STOP / GO',orbit:'ORBITAL ERASERS'};
         if(s.bossPattern?.id!==id){
             s.hazards=[];s.bullets=[];s.patternClock=.7;s.bossCue=.7;
-            s.player.vy=0;s.bossJumpHeld=false;
+            s.player.vy=0;s.bossJumpHeld=false;s.boss.stageVolley=0;s.boss.attackName=null;s.boss.lastColor=null;
             s.invulnerable=Math.max(s.invulnerable,.35);
         }
-        s.bossPattern={id,name:names[id],control,enraged};
-        s.rule=id==='colors'?(Math.floor((t-16)/1)%2===0?'blue':'orange'):'white';
+        s.bossPattern={id,name:s.boss.attackName||names[id],control,enraged,cycle};
+        s.rule=id==='colors'?(s.boss.lastColor||'blue'):'white';
         s.bossCue=Math.max(0,(s.bossCue||0)-dt);
     }
     function rectangle(s,definition){
@@ -81,31 +83,100 @@
         s.hazards.push({vx:0,vy:0,warning:.4,life:3,age:0,kind:'white',...definition});
     }
     function bossPattern(s){
-        const a=BOSS_ARENA,enraged=s.bossPattern.enraged;
+        const a=BOSS_ARENA,enraged=s.bossPattern.enraged,cycle=s.bossPattern.cycle;
         s.boss.volley=(s.boss.volley||0)+1;
-        const n=s.boss.volley,speed=enraged?300:225;
+        s.boss.stageVolley=(s.boss.stageVolley||0)+1;
+        const n=s.boss.stageVolley,variant=(n-1+cycle)%3,speed=enraged?315:240;
+        const width=a.right-a.left,height=a.bottom-a.top;
+        const flowLeft=cycle%2===0;
+        function gate(gap,size,delay,fromLeft=flowLeft){
+            const x=fromLeft?a.left-22:a.right+4,vx=fromLeft?speed:-speed;
+            rectangle(s,{type:'bar',x,y:a.top,w:18,h:gap-size/2-a.top,vx,warning:delay});
+            rectangle(s,{type:'bar',x,y:gap+size/2,w:18,h:a.bottom-gap-size/2,vx,warning:delay});
+        }
+        function beam(x,y,w,h,warning,life=.24){rectangle(s,{type:'beam',x,y,w,h,warning,life});}
         if(s.bossPattern.id==='margins'){
-            const fromLeft=n%2===0,gap=a.top+66+(n%3)*48,gapSize=enraged?76:90;
-            const x=fromLeft?a.left-22:a.right+2,vx=fromLeft?speed:-speed;
-            rectangle(s,{type:'bar',x,y:a.top,w:18,h:gap-gapSize/2-a.top,vx,warning:.32});
-            rectangle(s,{type:'bar',x,y:gap+gapSize/2,w:18,h:a.bottom-gap-gapSize/2,vx,warning:.32});
-            s.patternClock=enraged?.75:1;
+            const gap=a.top+[65,169,116][(n-1)%3],size=enraged?68:82;
+            if(variant===1){
+                s.boss.attackName='FALLING MARGINS';
+                const gapX=a.left+80+((n+cycle)%3)*82,opening=enraged?78:96;
+                rectangle(s,{type:'bar',x:a.left,y:a.top-24,w:gapX-opening/2-a.left,h:16,vy:speed,warning:.4});
+                rectangle(s,{type:'bar',x:gapX+opening/2,y:a.top-24,w:a.right-gapX-opening/2,h:16,vy:speed,warning:.4});
+            }else{
+                s.boss.attackName=variant===0?'STAGGERED GATES':'CROSS-CUT GATE';
+                gate(gap,size,.36);
+                if(variant===0){
+                    const second=a.top+[145,89,169][(n-1)%3];
+                    gate(second,size,enraged?.68:.76);
+                }else{
+                    beam(a.left,clamp(s.player.y-7,a.top,a.bottom-14),width,14,enraged?.7:.9,.2);
+                }
+            }
+            s.patternClock=enraged?.72:.98;
         }else if(s.bossPattern.id==='beams'){
-            const vertical=n%2===0,warning=enraged?.5:.72;
-            rectangle(s,{type:'beam',x:vertical?clamp(s.player.x-12,a.left,a.right-24):a.left,y:vertical?a.top:clamp(s.player.y-9,a.top,a.bottom-18),w:vertical?24:a.right-a.left,h:vertical?a.bottom-a.top:18,warning,life:.25});
-            // Alternating directions lock on when warned; they do not track the player afterward.
-            s.patternClock=enraged?.55:.8;
+            const warning=enraged?.5:.68;
+            if(variant===0){
+                s.boss.attackName='CROSSLINE DELETION';
+                beam(clamp(s.player.x-11,a.left,a.right-22),a.top,22,height,warning);
+                beam(a.left,clamp(s.player.y-8,a.top,a.bottom-16),width,16,warning+.08);
+            }else if(variant===1){
+                s.boss.attackName='TYPEWRITER RAKE';
+                const direction=n%2===0?1:-1;
+                for(let i=0;i<3;i++)beam(clamp(s.player.x-10+(i-1)*62*direction,a.left,a.right-20),a.top,20,height,warning+i*(enraged?.1:.14),.26);
+            }else{
+                s.boss.attackName='LAST SAFE COLUMN';
+                const opening=enraged?66:80;
+                const center=clamp(s.player.x+(n%2===0?82:-82),a.left+opening/2+14,a.right-opening/2-14);
+                beam(a.left,a.top,center-opening/2-a.left,height,warning+.16,.3);
+                beam(center+opening/2,a.top,a.right-center-opening/2,height,warning+.16,.3);
+                beam(a.left,clamp(s.player.y-7,a.top,a.bottom-14),width,14,warning+.34,.18);
+            }
+            s.patternClock=enraged?.84:1.12;
         }else if(s.bossPattern.id==='gravity'){
-            const fromLeft=n%2===0,height=n%3===0?32:22;
-            rectangle(s,{type:'underline',x:fromLeft?a.left-30:a.right+4,y:a.bottom-height,w:n%3===0?36:22,h:height,vx:fromLeft?speed:-speed,warning:.42});
-            s.patternClock=enraged?.85:1.15;
+            const fromLeft=flowLeft,x=fromLeft?a.left-42:a.right+6,vx=fromLeft?speed:-speed;
+            const tall=variant===0;
+            s.boss.attackName=tall?'HIGH UNDERLINE':variant===1?'LOW CEILING':'DOUBLE UNDERLINE';
+            const h=tall?48:variant===1?20:26,w=tall?34:22;
+            rectangle(s,{type:'underline',x,y:a.bottom-h,w,h,vx,warning:.46});
+            if(variant===1){
+                rectangle(s,{type:'ceiling',x:x-18,y:a.bottom-106,w:64,h:30,vx,warning:.46});
+            }else if(variant===2){
+                rectangle(s,{type:'underline',x,y:a.bottom-26,w:22,h:26,vx,warning:.66});
+            }
+            if(enraged&&n%3===0)beam(clamp(s.player.x-9,a.left,a.right-18),a.top,18,height,.85,.18);
+            s.patternClock=enraged?.94:1.18;
+        }else if(s.bossPattern.id==='orbit'){
+            const direction=n%2===1?1:-1;
+            s.boss.attackName=`ORBITAL ERASERS - ${direction>0?'CW':'CCW'}`;
+            const pairs=enraged?3:2,warning=enraged?.65:.85,life=enraged?2.1:1.8;
+            for(let pair=0;pair<pairs;pair++)for(let side=0;side<2;side++)rectangle(s,{type:'rotating-beam',x:0,y:0,w:enraged?16:12,h:1,phi:(n%2===1?-.8:.4)+pair*Math.PI/pairs+side*Math.PI,spin:direction*(enraged?1.65:1.05),warning,life});
+            s.patternClock=warning+life+.25;
         }else{
-            const fromLeft=n%2===0;
-            rectangle(s,{type:'color-wall',kind:s.rule,x:fromLeft?a.left-24:a.right+4,y:a.top,w:18,h:a.bottom-a.top,vx:fromLeft?speed:-speed,warning:.4});
-            s.patternClock=enraged?.7:.95;
+            const kind=n%2===1?'blue':'orange';
+            s.rule=kind;s.boss.lastColor=kind;
+            s.boss.attackName=kind==='blue'?'STOP, THEN WEAVE':'MOVE, THEN WEAVE';
+            rectangle(s,{type:'color-wall',kind,x:flowLeft?a.left-24:a.right+4,y:a.top,w:18,h:height,vx:flowLeft?speed:-speed,warning:.36});
+            const gap=a.top+[74,164,116][(n-1)%3];
+            gate(gap,enraged?68:84,enraged?.96:1.06);
+            s.patternClock=enraged?1.14:1.4;
         }
     }
+    function emitterAt(phi){
+        const a=BOSS_ARENA,cx=(a.left+a.right)/2,cy=(a.top+a.bottom)/2;
+        const dx=Math.cos(phi),dy=Math.sin(phi);
+        const radius=Math.min(((a.right-a.left)/2+28)/Math.max(.00001,Math.abs(dx)),((a.bottom-a.top)/2+22)/Math.max(.00001,Math.abs(dy)));
+        return {x:cx+dx*radius,y:cy+dy*radius};
+    }
+    function rotatingGeometry(h){
+        const phi=h.phi+h.spin*Math.max(0,h.age-h.warning),origin=emitterAt(phi);
+        return {...origin,angle:phi+Math.PI,length:800};
+    }
     function rectangleHit(p,h){
+        if(h.type==='rotating-beam'){
+            const ray=rotatingGeometry(h),dx=Math.cos(ray.angle),dy=Math.sin(ray.angle);
+            const along=clamp((p.x-ray.x)*dx+(p.y-ray.y)*dy,0,ray.length);
+            return Math.hypot(p.x-ray.x-along*dx,p.y-ray.y-along*dy)<p.r+h.w/2;
+        }
         const closestX=clamp(p.x,h.x,h.x+h.w),closestY=clamp(p.y,h.y,h.y+h.h);
         return Math.hypot(p.x-closestX,p.y-closestY)<p.r;
     }
@@ -144,7 +215,7 @@
         const gravity=s.phase==='boss'&&s.bossPattern?.control==='gravity';
         const arena=s.phase==='boss'?BOSS_ARENA:{left:3,right:W-3,top:3,bottom:H-3};
         const before={...s.player};
-        let speed=116*(1+.12*(s.upgrades.pace||0));
+        let speed=116*MOVEMENT_SCALE*(1+.12*(s.upgrades.pace||0));
         if(gravity){
             s.dash=0;
             const held=iy<-.3||!!input.jumpHeld;
@@ -197,7 +268,7 @@
             if(hazard.age>=hazard.warning&&hazard.age<hazard.warning+hazard.life){
                 const activeDt=Math.min(dt,hazard.age-hazard.warning);
                 hazard.x+=hazard.vx*activeDt;hazard.y+=hazard.vy*activeDt;
-                if(rectangleHit(s.player,hazard)&&isHarmful(hazard.kind,moving))hit(s,hazard.type==='beam'?'Caught in a deletion beam. Move away from the warning line.':hazard.type==='underline'?'Jump over the underlines when gravity is on.':hazard.kind==='blue'?'Blue walls are safe only when you stay still.':hazard.kind==='orange'?'Keep moving through orange walls.':'Find the opening between the moving margins.');
+                if(rectangleHit(s.player,hazard)&&isHarmful(hazard.kind,moving))hit(s,hazard.type==='rotating-beam'?'Circle with the rotating erasers; avoid the center and watch the reversal.':hazard.type==='beam'?'Caught in a deletion beam. Move away from the warning line.':hazard.type==='underline'?'Hold for the high underline; tap beneath low ceilings.':hazard.type==='ceiling'?'Use a short tap beneath low ceilings.':hazard.kind==='blue'?'Blue walls are safe only when you stay still.':hazard.kind==='orange'?'Keep moving through orange walls.':'Find the opening between the moving margins.');
             }
         }
         s.hazards=s.hazards.filter(h=>h.age<h.warning+h.life);
@@ -211,6 +282,6 @@
             else transition(s);
         }
     }
-    const api={W,H,BOSS_ARENA,DURATIONS,UPGRADES,create,step,choose,isHarmful};
+    const api={W,H,BOSS_ARENA,emitterAt,rotatingGeometry,DURATIONS,UPGRADES,create,step,choose,isHarmful};
     if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.WritingGame=api;
 })(globalThis);
